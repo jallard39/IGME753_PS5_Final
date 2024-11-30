@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RuniJ_IntroPS5", "RuniJ_IntroPS5.vcxproj", "{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Prospero = Debug|Prospero
+		Release|Prospero = Release|Prospero
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}.Debug|Prospero.ActiveCfg = Debug|Prospero
+		{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}.Debug|Prospero.Build.0 = Debug|Prospero
+		{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}.Release|Prospero.ActiveCfg = Release|Prospero
+		{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}.Release|Prospero.Build.0 = Release|Prospero
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BB6A9C24-3224-4FAD-8FB6-EB4646865CBD}
+	EndGlobalSection
+EndGlobal

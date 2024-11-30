@@ -1,0 +1,33 @@
+﻿/* SIE CONFIDENTIAL
+PlayStation(R)5 Programmer Tool Runtime Library Release 8.00.00.41-00.00.00.0.1
+* Copyright (C) 2021 Sony Interactive Entertainment Inc.
+* 
+*/
+
+struct V2P
+{
+	float4 pos : S_POSITION;
+	float3 color : COLOR;
+};
+
+struct BasicVertex
+{
+	float3 pos;
+	float3 color;
+};
+
+RegularBuffer<BasicVertex> vertices;
+RegularBuffer<float4x4> mvp;
+
+[CxxSymbol("ShaderText::gs")]
+V2P main(uint id : S_VERTEX_ID, uint drawID : S_DRAW_ID)
+{
+	V2P ret;
+
+	ret.pos = mul(mvp[drawID], float4(vertices[id].pos, 1));
+	//ret.pos = mul(mvp[drawID], float4(instances[id].pos, 1));
+	//ret.pos = float4(vertices[id].pos, 1);
+	ret.color = vertices[id].color;
+
+	return ret;
+}
