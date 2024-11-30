@@ -12,6 +12,11 @@ const float PADDLE_SPEED = 0.05f;
 const float BALL_SPEED = 0.015f;
 float curentPos = 0.0f;
 
+const float PLAYER_START[2] = { 0.0f, 0.0f };
+const float PLAYER_SIZE = 0.1f;
+int playerDirectionX = 1;
+int playerDirectionY = 0;
+
 SceUserServiceUserId userId; // user information
 int32_t controllerHandle; 
 
@@ -63,8 +68,8 @@ bool handleUserEvents(RenderManager* renderManager) {
 	static bool circleDown = false;
 	static bool crossDown = false;
 
-	//static bool upPressed = false;
-	//static bool downPressed = false;
+	static bool upPressed = false;
+	static bool downPressed = false;
 	static bool leftPressed = false;
 	static bool rightPressed = false;
 
@@ -136,45 +141,50 @@ bool handleUserEvents(RenderManager* renderManager) {
 			crossDown = false;
 		}
 
-		//// DPAD
-		//// Up
-		//if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_UP) == 0 && !upPressed)
-		//{
-		//	// No pushing on the up button
-		//}
-		//else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_UP) != 0)
-		//{
-		//	renderManager->updateTrianglePos(0.0f,MOVING_SPEED);
-		//	upPressed = true;
-		//}
-		//else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_UP) == 0 && upPressed)
-		//{
-		//	printf("## Up!!! ##\n");
-		//	upPressed = false;
-		//}
+		// DPAD
+		// Up
+		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_UP) != 0 && !upPressed)
+		{
+			
+		}
+		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_UP) != 0)
+		{
+			playerDirectionX = 0;
+			playerDirectionY = 1;
+			upPressed = true;
+		}
+		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_UP) == 0 && upPressed)
+		{
+			printf("## Up!!! ##\n");
+			upPressed = false;
+		}
 	
-		//// Down
-		//if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_DOWN) == 0 && !downPressed)
-		//{
-		//	// No pushing on the up button
-		//}
-		//else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_DOWN) != 0) {
-		//	renderManager->updateTrianglePos(0.0f, -MOVING_SPEED);
-		//	downPressed = true;
-		//}
-		//else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_DOWN) == 0 && downPressed)
-		//{
-		//	printf("## Down!!! ##\n");
-		//	downPressed = false;
-		//}
+		// Down
+		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_DOWN) != 0 && !downPressed)
+		{
+			
+		}
+		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_DOWN) != 0) 
+		{
+			playerDirectionX = 0;
+			playerDirectionY = -1;
+			downPressed = true;
+		}
+		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_DOWN) == 0 && downPressed)
+		{
+			printf("## Down!!! ##\n");
+			downPressed = false;
+		}
 
 		// Left
-		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_LEFT) == 0 && !leftPressed)
+		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_LEFT) != 0 && !leftPressed)
 		{
-			// No pushing on the up button
+			
 		}
-		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_LEFT) != 0) {
-			renderManager->updatePaddlePosition(-PADDLE_SPEED, 0.0f);
+		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_LEFT) != 0) 
+		{
+			playerDirectionX = -1;
+			playerDirectionY = 0;
 			leftPressed = true;
 		}
 		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_LEFT) == 0 && leftPressed)
@@ -184,12 +194,14 @@ bool handleUserEvents(RenderManager* renderManager) {
 		}
 
 		// Right
-		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_RIGHT) == 0 && !rightPressed)
+		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_RIGHT) != 0 && !rightPressed)
 		{
-			// No pushing on the up button
+			
 		}
-		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_RIGHT) != 0) {
-			renderManager->updatePaddlePosition(PADDLE_SPEED, 0.0f);
+		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_RIGHT) != 0) 
+		{
+			playerDirectionX = 1;
+			playerDirectionY = 0;
 			rightPressed = true;
 		}
 		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_RIGHT) == 0 && rightPressed)
@@ -203,6 +215,7 @@ bool handleUserEvents(RenderManager* renderManager) {
 	return false;
 }
 
+
 const float WHITE[3] = { 1.0f, 1.0f, 1.0f };
 const float RED[3] = { 1.0f, 0.0f, 0.0f };
 const float GREEN[3] = { 0.0f, 1.0f, 0.0f };
@@ -210,13 +223,44 @@ const float BLUE[3] = { 0.0f, 0.0f, 1.0f };
 const float YELLOW[3] = { 1.0f, 1.0f, 0.0f };
 const float* COLORS[] = { RED, GREEN, BLUE, YELLOW, WHITE };
 
-const uint16_t ROW = 4;
-const uint16_t COL = 5;
-const float BRICK_LENGTH = 0.4f;
-const float BRICK_HEIGHT = 0.1f;
-const float GAP = 0.1f;
+uint16_t rectangleIndices[6] = { 0, 1, 2, 0, 2, 3 };
 const float RADIUS = 0.05f;
-const uint16_t SEGMENTS = 12;
+//const uint16_t SEGMENTS = 12;
+
+void createMaze(RenderManager* renderManager)
+{
+	// Create top wall
+	BasicVertex wallVerts[4] =
+	{
+		{ -2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2]},
+		{ 2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] },
+		{ 2.0f, 1.0f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] },
+		{ -2.0f, 1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] }
+	};
+	renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
+
+	// Create bottom wall
+	wallVerts[0] = { -2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	wallVerts[1] = { 2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	wallVerts[2] = { 2.0f, -0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
+	wallVerts[3] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
+
+	// Create left wall
+	wallVerts[0] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	wallVerts[1] = { -1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	wallVerts[2] = { -1.9f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
+	wallVerts[3] = { -2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
+
+	// Create right wall
+	wallVerts[0] = { 1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	wallVerts[1] = { 2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	wallVerts[2] = { 2.0f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
+	wallVerts[3] = { 1.9f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
+
+}
 
 int main(int argc, const char *argv[])
 {
@@ -229,68 +273,37 @@ int main(int argc, const char *argv[])
 		renderManager->setClearColor(0, 0, 0, 255);
 		renderManager->init();
 
-		// Create rectangle Indices
-		uint16_t rectangleIndices[6] = { 0, 1, 2, 0, 2 , 3 };
-	
-
-		// Create ball --> allObjects[0]
-		BasicVertex ballVerts[SEGMENTS + 1];
-		ballVerts[0] = { 0.0f, 0.0f, -0.25f, WHITE[0], WHITE[1], WHITE[2] }; // Center
-		for (uint16_t i = 1; i <= SEGMENTS; ++i) {
-			float angle = 2.0f * M_PI * i / SEGMENTS; // Angle in radians
-			float x = RADIUS * cos(angle); // Radius of 0.05f for the circle
-			float y = RADIUS * sin(angle);
-			ballVerts[i] = { x, y, -0.25f, WHITE[0], WHITE[1], WHITE[2] };
-		}
-		uint16_t circleIndices[SEGMENTS * 3]; // Each segment contributes 3 indices to form a triangle
-
-		for (int i = 0; i < SEGMENTS; ++i) {
-			circleIndices[i * 3] = 0;            // Center vertex index (always 0)
-			circleIndices[i * 3 + 1] = i + 1;    // Current vertex index (1 to SEGMENTS)
-			circleIndices[i * 3 + 2] = (i + 1) % SEGMENTS + 1; // Next vertex index, wraps around
-		}
-		//BasicVertex ballVerts[4] =
-		//{
-		//	{ -0.05f, -0.05f, -0.25f, WHITE[0], WHITE[1], WHITE[2]},
-		//	{ 0.05f, -0.05f, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
-		//	{ 0.05f, 0.05f, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
-		//	{ -0.05f, 0.05f, -0.25f, WHITE[0], WHITE[1], WHITE[2] }
-		//};
-		renderManager->createObject(ballVerts, SEGMENTS + 1, circleIndices, SEGMENTS * 3);
-
-		// Create paddle --> allObjects[1]
-		BasicVertex paddleVerts[4] =
+		// Create player --> allObjects[0]
+		
+		BasicVertex ballVerts[4] =
 		{
-			{ -0.25f, -1.05f, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
-			{ 0.25f, -1.05f, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
-			{ 0.25f, -0.95f, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
-			{ -0.25f, -0.95f, -0.25f, WHITE[0], WHITE[1], WHITE[2] }
+			{ PLAYER_START[0] - PLAYER_SIZE / 2, PLAYER_START[1] - PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
+			{ PLAYER_START[0] + PLAYER_SIZE / 2, PLAYER_START[1] - PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
+			{ PLAYER_START[0] + PLAYER_SIZE / 2, PLAYER_START[1] + PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
+			{ PLAYER_START[0] - PLAYER_SIZE / 2, PLAYER_START[1] + PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] }
 		};
-		renderManager->createObject(paddleVerts, 4, rectangleIndices, 6);
+		renderManager->createObject(ballVerts, 4, rectangleIndices, 6);
 
-		// Create bricks
-		for (uint16_t row = 0; row < ROW; row++)
-		{
-			int colorIndex = row % 5;
-			for (uint16_t col = 0; col < COL; col++)
-			{
-				float x_offset = col * (BRICK_LENGTH + GAP);
-				float y_offset = row * (BRICK_HEIGHT + GAP);
-				// Create brick
-				BasicVertex brick[4] =
-				{
-					{ -1.2f + x_offset, 1.00f - y_offset, -0.25f, COLORS[colorIndex][0], COLORS[colorIndex][1], COLORS[colorIndex][2] },	// bottom left
-					{ -0.8f + x_offset, 1.00f - y_offset, -0.25f, COLORS[colorIndex][0], COLORS[colorIndex][1], COLORS[colorIndex][2] },	// bottom right
-					{ -0.8f + x_offset, 1.10f - y_offset, -0.25f, COLORS[colorIndex][0], COLORS[colorIndex][1], COLORS[colorIndex][2] },	// top right
-					{ -1.2f + x_offset, 1.10f - y_offset, -0.25f, COLORS[colorIndex][0], COLORS[colorIndex][1], COLORS[colorIndex][2] }		// top left
-				};
+		// ===== Circle Code ======
+		//BasicVertex ballVerts[SEGMENTS + 1];
+		//ballVerts[0] = { 0.0f, 0.0f, -0.25f, WHITE[0], WHITE[1], WHITE[2] }; // Center
+		//for (uint16_t i = 1; i <= SEGMENTS; ++i) {
+		//	float angle = 2.0f * M_PI * i / SEGMENTS; // Angle in radians
+		//	float x = RADIUS * cos(angle); // Radius of 0.05f for the circle
+		//	float y = RADIUS * sin(angle);
+		//	ballVerts[i] = { x, y, -0.25f, WHITE[0], WHITE[1], WHITE[2] };
+		//}
+		//uint16_t circleIndices[SEGMENTS * 3]; // Each segment contributes 3 indices to form a triangle
+		//
+		//for (int i = 0; i < SEGMENTS; ++i) {
+		//	circleIndices[i * 3] = 0;            // Center vertex index (always 0)
+		//	circleIndices[i * 3 + 1] = i + 1;    // Current vertex index (1 to SEGMENTS)
+		//	circleIndices[i * 3 + 2] = (i + 1) % SEGMENTS + 1; // Next vertex index, wraps around
+		//}
 
-				renderManager->createObject(brick, 4, rectangleIndices, 6);
-			}
-		}
+		// Create maze
+		createMaze(renderManager);
 
-
-	/*	renderManager->createRectangle();*/
 		renderManager->createTestViewMatrix();
 
 		printf("## Initialization has gone all right ##\n");
@@ -298,146 +311,172 @@ int main(int argc, const char *argv[])
 		bool done = false;
 
 		vector<Object>& allObjects = renderManager->GetAllObjects();
-		Object ball = allObjects[0];
-		int directionX = 1;
-		int directionY = 1;
+		Object player = allObjects[0];
+		
 		
 		// loop until exit
 		while (!done) {
 
-			if (ball.vertices[0].pos[0] - RADIUS < -2.15f) { directionX = 1; }
-			if (ball.vertices[0].pos[0] + RADIUS > 2.15f) { directionX = -1; }
-			if (ball.vertices[0].pos[1] - RADIUS < -1.25f) { directionY = 1; }
-			if (ball.vertices[0].pos[1] + RADIUS > 1.25f) { directionY = -1; }
+			renderManager->updateBallPosition(BALL_SPEED * playerDirectionX, BALL_SPEED * playerDirectionY);
 
-			renderManager->updateBallPosition(BALL_SPEED * directionX, BALL_SPEED * directionY);
-			
-			for (int i = 1; i < allObjects.size(); i++)
+			if (player.vertices[0].pos[0] - RADIUS < -2.15f) { playerDirectionX = 0; }
+			if (player.vertices[0].pos[0] + RADIUS > 2.15f) { playerDirectionX = 0; }
+			if (player.vertices[0].pos[1] - RADIUS < -1.25f) { playerDirectionY = 0; }
+			if (player.vertices[0].pos[1] + RADIUS > 1.25f) { playerDirectionY = 0; }
+
+			// ===================================================
+			// Collision Detection - AABB from bottom left corner
+			// ===================================================
+
+			// Get player bounds
+			float playerX = player.vertices[0].pos[0];
+			float playerY = player.vertices[0].pos[1];
+
+			for (int i = 1; i < allObjects.size(); i++) 
 			{
-				if (allObjects[i].isActive)
+				// Get rectangle bounds
+				float wallX = allObjects[i].vertices[0].pos[0];
+				float wallY = allObjects[i].vertices[0].pos[1];
+				float wallWidth = allObjects[i].vertices[1].pos[0] - wallX;
+				float wallHeight = allObjects[i].vertices[3].pos[1] - wallY;
+
+				// Check for collision
+				if (playerX < wallX + wallWidth && playerX + PLAYER_SIZE > wallX &&
+					playerY < wallY + wallHeight && playerY + PLAYER_SIZE > wallY) 
 				{
-					// Track if a collision is detected
-					bool collisionDetected = false;
-
-					// Get rectangle bounds
-					float xMin = allObjects[i].vertices[0].pos[0];
-					float xMax = allObjects[i].vertices[2].pos[0];
-					float yMin = allObjects[i].vertices[0].pos[1];
-					float yMax = allObjects[i].vertices[2].pos[1];
-
-					// Get center of circle
-					float circleCenter_X = ball.vertices[0].pos[0];
-					float circleCenter_Y = ball.vertices[0].pos[1];
-
-					// Vertical collisions
-					if (circleCenter_X >= xMin && circleCenter_X <= xMax)
-					{
-						if (circleCenter_Y >= yMax && circleCenter_Y - yMax < RADIUS ||
-							circleCenter_Y <= yMin && yMin - circleCenter_Y < RADIUS) 
-						{
-							collisionDetected = true;
-							directionY *= -1;
-						}
-					}
-					// Horizontal collisions
-					else if (circleCenter_Y >= yMin && circleCenter_Y <= yMax)
-					{
-						if (circleCenter_X >= xMax && circleCenter_X - xMax < RADIUS ||
-							circleCenter_X <= xMin && xMin - circleCenter_X < RADIUS)
-						{
-							collisionDetected = true;
-							directionX *= -1;
-						}
-					}
-					// Corner collisions (both horizontal and vertical)
-					else
-					{
-						// Get closest x and y
-						float closestX;
-						if (circleCenter_X < xMin) closestX = xMin;
-						else if (circleCenter_X > xMax) closestX = xMax;
-						else if (xMax - circleCenter_X + xMin - circleCenter_X > 0) closestX = xMin;
-						else closestX = xMax;
-
-						float closestY;
-						if (circleCenter_Y < yMin) closestY = yMin;
-						else if (circleCenter_Y > yMax) closestY = yMax;
-						else if (yMax - circleCenter_Y + yMin - circleCenter_Y > 0) closestY = yMin;
-						else closestY = yMax;
-
-						// Check if radius overlaps with closest corner
-						float dx = circleCenter_X - closestX;
-						float dy = circleCenter_Y - closestY;
-
-						float distanceSquared = dx * dx + dy * dy;
-
-						if (distanceSquared <= RADIUS * RADIUS)
-						{
-							collisionDetected = true;
-
-							if ((dx < 0) ? -dx : dx > (dy < 0) ? -dy : dy) {
-								//// Horizontal collision
-								//if (dx > 0) return "Left";
-								//else return "Right";
-
-								directionX *= -1;
-							}
-							else {
-								//// Vertical collision
-								//if (dy > 0) return "Top";
-								//else return "Bottom";
-
-								directionY *= -1;
-							}
-						}
-					}
-
-					// If collision detected, destroy brick
-					if (collisionDetected && i != 1)
-					{
-						allObjects[i].isActive = false;
-					}
-
-					// ===== AABB Collision Code (2 rectangles) =====
-					// 
-					//if (ball.vertices[3].pos[0] < allObjects[i].vertices[3].pos[0] + BRICK_LENGTH &&
-					//	ball.vertices[3].pos[0] + 0.1f > allObjects[i].vertices[3].pos[0] &&                 // TODO: Change the length of the ball
-					//	ball.vertices[3].pos[1] < allObjects[i].vertices[3].pos[1] + BRICK_HEIGHT &&
-					//	ball.vertices[3].pos[1] + 0.1f > allObjects[i].vertices[3].pos[1])
-					//{
-
-					//	float leftPenetration = allObjects[i].vertices[1].pos[0] - ball.vertices[0].pos[0];
-					//	float rightPenetration = ball.vertices[1].pos[0] - allObjects[i].vertices[0].pos[0];
-					//	float topPenetration = allObjects[i].vertices[2].pos[1] - ball.vertices[0].pos[1];
-					//	float bottomPenetration = ball.vertices[2].pos[1] - allObjects[i].vertices[0].pos[1];
-
-					//	if (i != 1)
-					//	{
-					//		allObjects[i].isActive = false;
-					//	}
-
-					//	if (leftPenetration < topPenetration && leftPenetration < bottomPenetration ||
-					//		rightPenetration < topPenetration && rightPenetration < bottomPenetration)
-					//	{
-					//		directionX *= -1;
-					//		printf("left or right collision\n");
-					//	}
-					//	else if (topPenetration < leftPenetration && topPenetration < rightPenetration ||
-					//		bottomPenetration < leftPenetration && bottomPenetration < rightPenetration)
-					//	{
-					//		directionY *= -1;
-					//		printf("top or bottom collision\n");
-					//	}
-					//	else
-					//	{
-					//		printf("Both???\n");
-					//		directionX *= -1;
-					//		directionY *= -1;
-					//	}
-
-					//}
+					// Differentiate between horizontal and vertical directions
 				}
 			}
+			
+			// =====================================
+			// OLD COLLISION DETECTION
+			// =====================================
+			//for (int i = 1; i < allObjects.size(); i++)
+			//{
+			//	if (allObjects[i].isActive)
+			//	{
+			//		// Track if a collision is detected
+			//		bool collisionDetected = false;
+
+			//		// Get rectangle bounds
+			//		float xMin = allObjects[i].vertices[0].pos[0];
+			//		float xMax = allObjects[i].vertices[2].pos[0];
+			//		float yMin = allObjects[i].vertices[0].pos[1];
+			//		float yMax = allObjects[i].vertices[2].pos[1];
+
+			//		// Get center of circle
+			//		float circleCenter_X = player.vertices[0].pos[0];
+			//		float circleCenter_Y = player.vertices[0].pos[1];
+
+			//		// Vertical collisions
+			//		if (circleCenter_X >= xMin && circleCenter_X <= xMax)
+			//		{
+			//			if (circleCenter_Y >= yMax && circleCenter_Y - yMax < RADIUS ||
+			//				circleCenter_Y <= yMin && yMin - circleCenter_Y < RADIUS) 
+			//			{
+			//				collisionDetected = true;
+			//				directionY *= -1;
+			//			}
+			//		}
+			//		// Horizontal collisions
+			//		else if (circleCenter_Y >= yMin && circleCenter_Y <= yMax)
+			//		{
+			//			if (circleCenter_X >= xMax && circleCenter_X - xMax < RADIUS ||
+			//				circleCenter_X <= xMin && xMin - circleCenter_X < RADIUS)
+			//			{
+			//				collisionDetected = true;
+			//				directionX *= -1;
+			//			}
+			//		}
+			//		// Corner collisions (both horizontal and vertical)
+			//		else
+			//		{
+			//			// Get closest x and y
+			//			float closestX;
+			//			if (circleCenter_X < xMin) closestX = xMin;
+			//			else if (circleCenter_X > xMax) closestX = xMax;
+			//			else if (xMax - circleCenter_X + xMin - circleCenter_X > 0) closestX = xMin;
+			//			else closestX = xMax;
+
+			//			float closestY;
+			//			if (circleCenter_Y < yMin) closestY = yMin;
+			//			else if (circleCenter_Y > yMax) closestY = yMax;
+			//			else if (yMax - circleCenter_Y + yMin - circleCenter_Y > 0) closestY = yMin;
+			//			else closestY = yMax;
+
+			//			// Check if radius overlaps with closest corner
+			//			float dx = circleCenter_X - closestX;
+			//			float dy = circleCenter_Y - closestY;
+
+			//			float distanceSquared = dx * dx + dy * dy;
+
+			//			if (distanceSquared <= RADIUS * RADIUS)
+			//			{
+			//				collisionDetected = true;
+
+			//				if ((dx < 0) ? -dx : dx > (dy < 0) ? -dy : dy) {
+			//					//// Horizontal collision
+			//					//if (dx > 0) return "Left";
+			//					//else return "Right";
+
+			//					directionX *= -1;
+			//				}
+			//				else {
+			//					//// Vertical collision
+			//					//if (dy > 0) return "Top";
+			//					//else return "Bottom";
+
+			//					directionY *= -1;
+			//				}
+			//			}
+			//		}
+
+			//		// If collision detected, destroy brick
+			//		if (collisionDetected && i != 1)
+			//		{
+			//			allObjects[i].isActive = false;
+			//		}
+
+			//		// ===== AABB Collision Code (2 rectangles) =====
+			//		// 
+			//		//if (ball.vertices[3].pos[0] < allObjects[i].vertices[3].pos[0] + BRICK_LENGTH &&
+			//		//	ball.vertices[3].pos[0] + 0.1f > allObjects[i].vertices[3].pos[0] &&                 // TODO: Change the length of the ball
+			//		//	ball.vertices[3].pos[1] < allObjects[i].vertices[3].pos[1] + BRICK_HEIGHT &&
+			//		//	ball.vertices[3].pos[1] + 0.1f > allObjects[i].vertices[3].pos[1])
+			//		//{
+
+			//		//	float leftPenetration = allObjects[i].vertices[1].pos[0] - ball.vertices[0].pos[0];
+			//		//	float rightPenetration = ball.vertices[1].pos[0] - allObjects[i].vertices[0].pos[0];
+			//		//	float topPenetration = allObjects[i].vertices[2].pos[1] - ball.vertices[0].pos[1];
+			//		//	float bottomPenetration = ball.vertices[2].pos[1] - allObjects[i].vertices[0].pos[1];
+
+			//		//	if (i != 1)
+			//		//	{
+			//		//		allObjects[i].isActive = false;
+			//		//	}
+
+			//		//	if (leftPenetration < topPenetration && leftPenetration < bottomPenetration ||
+			//		//		rightPenetration < topPenetration && rightPenetration < bottomPenetration)
+			//		//	{
+			//		//		directionX *= -1;
+			//		//		printf("left or right collision\n");
+			//		//	}
+			//		//	else if (topPenetration < leftPenetration && topPenetration < rightPenetration ||
+			//		//		bottomPenetration < leftPenetration && bottomPenetration < rightPenetration)
+			//		//	{
+			//		//		directionY *= -1;
+			//		//		printf("top or bottom collision\n");
+			//		//	}
+			//		//	else
+			//		//	{
+			//		//		printf("Both???\n");
+			//		//		directionX *= -1;
+			//		//		directionY *= -1;
+			//		//	}
+
+			//		//}
+			//	}
+			//}
 
 			renderManager->drawScene();
 			// Check to see if user has requested to quit the loop and update simple app stuff

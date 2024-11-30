@@ -1,3 +1,4 @@
 D:\Profiles\GCCISAdmin\source\repos\RuniJ_IntroPS5\Prospero_Debug\RuniJ_IntroPS5.elf
 D:\Profiles\GCCISAdmin\source\repos\BreakOut_PS5_Jordan_Runi\IGME753_PS5_BreakOut\Prospero_Debug\BreakOut.elf
 D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\Prospero_Debug\BreakOut.elf
+D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\Prospero_Debug\BreakOut.elf
