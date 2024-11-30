@@ -7,6 +7,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <vectormath.h>
+#include <vector>
 
 using namespace std;
 using namespace sce::Vectormath::Scalar::Aos;
@@ -44,20 +45,15 @@ typedef struct BasicVertex {
 
 } BasicVertex;
 
-struct Mesh
+struct Object
 {
-	//sce::Agc::Core::Buffer vertexBuffer;
-	uint16_t* indexBuffer = nullptr;
-	uint32_t indicesPerObject;
-};
-
-struct Brick
-{/*
-	sce::Agc::Core::Buffer vertexBuffer;*/
-	uint16_t* indexBuffer;
-	uint32_t indexCount = 6;
 	BasicVertex* vertices;
-	bool isHit = false;
+	uint32_t vertexCount = 0;
+	sce::Agc::Core::Buffer vertexBuffer;
+	uint16_t* indexBuffer = nullptr;
+	uint32_t indexCount = 0;
+	Matrix4 transform;
+	bool isActive = true;
 };
 
 // Base class for all games that need a rendering loop
@@ -74,6 +70,7 @@ private:
 	uint16_t* indexBuffer = nullptr;
 	sce::Agc::Core::Buffer matBuffer;
 	BasicVertex* triangle;
+	vector<Object> allObjects;
 
 	// sce variables
 	SceError error;
@@ -91,6 +88,8 @@ private:
 	sce::Agc::CxPrimitiveSetup primSetup;
 	sce::Agc::CxDepthStencilControl depthStencilControl;
 	sce::Agc::Shader* gs, * ps;
+	
+	void updateObjectPosition(int i, float dx, float dy);
 
 public:
 	RenderManager();
@@ -101,7 +100,9 @@ public:
 	void setWindowSize(int winX, int winY) { windowX = winX; windowY = winY; }
 	void setClearColor(uint32_t r, uint32_t g, uint32_t b, uint32_t a) { 
 		rtClearValue = sce::Agc::Core::Encoder::raw(r, g, b, a); }
-	void AddBrick(const std::vector<Brick>& bricks);
+	void createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);
 	void createTestViewMatrix();
-	void updateTrianglePos(float dx, float dy);
+	void updatePaddlePosition(float dx, float dy);
+	void updateBallPosition(float dx, float dy);
+	vector<Object>& GetAllObjects();
 }; 

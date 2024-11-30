@@ -13,7 +13,6 @@ struct V2P
 [CxxSymbol("ShaderText::ps")]
 float4 main(V2P input) : S_TARGET_OUTPUT0
 {	
-	// Change color by putting brg value into rgb
-	return float4(input.color.b * cos(input.pos.x), input.color.r * sin(input.pos.y), input.color.g * input.pos.z, 1);
+	return float4(input.color, 1);
 }
 

@@ -1,4 +1,61 @@
-﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Platforms\Prospero\Prospero.CppBuild.targets(100,5): warning MSB8028: The intermediate directory (Prospero_Debug\) contains files shared from another project (RuniJ_IntroPS5.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Platforms\Prospero\Prospero.CppBuild.targets(100,5): warning MSB8028: The intermediate directory (Prospero_Debug\) contains files shared from another project (PS5_Final.vcxproj, RuniJ_IntroPS5.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  pix_p.pssl
+  vex_vv.pssl
   GameMain.cpp
+D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\GameMain.cpp(335,34): warning : '&&' within '||' [-Wlogical-op-parentheses]
+    335 |                                                 if (circleCenter_Y >= yMax && circleCenter_Y - yMax < RADIUS ||
+        |                                                     ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ~~
+  D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\GameMain.cpp(335,34): note: place parentheses around the '&&' expression to silence this warning
+    335 |                                                 if (circleCenter_Y >= yMax && circleCenter_Y - yMax < RADIUS ||
+        |                                                                            ^
+        |                                                     (                                                       )
+  fix-it:"D:\\Profiles\\GCCISAdmin\\source\\repos\\IGME753_PS5_Final\\GameMain.cpp":{335:11-335:11}:"("
+  fix-it:"D:\\Profiles\\GCCISAdmin\\source\\repos\\IGME753_PS5_Final\\GameMain.cpp":{335:67-335:67}:")"
+D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\GameMain.cpp(336,31): warning : '&&' within '||' [-Wlogical-op-parentheses]
+    335 |                                                 if (circleCenter_Y >= yMax && circleCenter_Y - yMax < RADIUS ||
+        |                                                                                                              ~~
+    336 |                                                         circleCenter_Y <= yMin && yMin - circleCenter_Y < RADIUS) 
+        |                                                         ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\GameMain.cpp(336,31): note: place parentheses around the '&&' expression to silence this warning
+    336 |                                                         circleCenter_Y <= yMin && yMin - circleCenter_Y < RADIUS) 
+        |                                                                                ^                                
+        |                                                         (                                                       )
+  fix-it:"D:\\Profiles\\GCCISAdmin\\source\\repos\\IGME753_PS5_Final\\GameMain.cpp":{336:8-336:8}:"("
+  fix-it:"D:\\Profiles\\GCCISAdmin\\source\\repos\\IGME753_PS5_Final\\GameMain.cpp":{336:64-336:64}:")"
+D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\GameMain.cpp(345,34): warning : '&&' within '||' [-Wlogical-op-parentheses]
+    345 |                                                 if (circleCenter_X >= xMax && circleCenter_X - xMax < RADIUS ||
+        |                                                     ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ~~
+  D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\GameMain.cpp(345,34): note: place parentheses around the '&&' expression to silence this warning
+    345 |                                                 if (circleCenter_X >= xMax && circleCenter_X - xMax < RADIUS ||
+        |                                                                            ^
+        |                                                     (                                                       )
+  fix-it:"D:\\Profiles\\GCCISAdmin\\source\\repos\\IGME753_PS5_Final\\GameMain.cpp":{345:11-345:11}:"("
+  fix-it:"D:\\Profiles\\GCCISAdmin\\source\\repos\\IGME753_PS5_Final\\GameMain.cpp":{345:67-345:67}:")"
+D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\GameMain.cpp(346,31): warning : '&&' within '||' [-Wlogical-op-parentheses]
+    345 |                                                 if (circleCenter_X >= xMax && circleCenter_X - xMax < RADIUS ||
+        |                                                                                                              ~~
+    346 |                                                         circleCenter_X <= xMin && xMin - circleCenter_X < RADIUS)
+        |                                                         ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\GameMain.cpp(346,31): note: place parentheses around the '&&' expression to silence this warning
+    346 |                                                         circleCenter_X <= xMin && xMin - circleCenter_X < RADIUS)
+        |                                                                                ^                                
+        |                                                         (                                                       )
+  fix-it:"D:\\Profiles\\GCCISAdmin\\source\\repos\\IGME753_PS5_Final\\GameMain.cpp":{346:8-346:8}:"("
+  fix-it:"D:\\Profiles\\GCCISAdmin\\source\\repos\\IGME753_PS5_Final\\GameMain.cpp":{346:64-346:64}:")"
+  4 warnings generated.
   RenderManager.cpp
-  RuniJ_IntroPS5.vcxproj -> D:\Profiles\GCCISAdmin\source\repos\BreakOut_PS5_Jordan_Runi\IGME753_PS5_BreakOut\Prospero_Debug\BreakOut.elf
+  In file included from D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\RenderManager.cpp:1:
+D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final/RenderManager.h(68,11): warning : private field 'indicesPerObject' is not used [-Wunused-private-field]
+     68 |         uint32_t indicesPerObject;
+        |                  ^
+D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final/RenderManager.h(69,25): warning : private field 'vertexBuffer' is not used [-Wunused-private-field]
+     69 |         sce::Agc::Core::Buffer vertexBuffer;
+        |                                ^
+D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final/RenderManager.h(70,12): warning : private field 'indexBuffer' is not used [-Wunused-private-field]
+     70 |         uint16_t* indexBuffer = nullptr;
+        |                   ^
+D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final/RenderManager.h(72,15): warning : private field 'triangle' is not used [-Wunused-private-field]
+     72 |         BasicVertex* triangle;
+        |                      ^
+  4 warnings generated.
+  RuniJ_IntroPS5.vcxproj -> D:\Profiles\GCCISAdmin\source\repos\IGME753_PS5_Final\Prospero_Debug\BreakOut.elf

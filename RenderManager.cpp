@@ -1,4 +1,3 @@
-#include <vector>
 #include "RenderManager.h"
 
 // These symbols point to the headers and code of the shader binaries linked into the sample's elf.
@@ -169,88 +168,37 @@ RenderManager::~RenderManager(void)
 {
 }
 
-const uint32_t numBrickVerts = 4;
-const uint32_t numBrickIndices = 6;
-void RenderManager::AddBrick(const std::vector<Brick>& bricks) {
+void RenderManager::createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices)
+{
+	Object obj;
 
-		indicesPerObject = 6;
+	// copy vertices into local memory
+	BasicVertex* vertBuf = (BasicVertex*)allocDmem({ numVerts * sizeof(BasicVertex), sce::Agc::Alignment::kBuffer });
+	memcpy(vertBuf, vertices, numVerts * sizeof(BasicVertex));
 
-		BasicVertex* vertices = (BasicVertex*)allocDmem({ bricks.size() * numBrickVerts * sizeof(BasicVertex), sce::Agc::Alignment::kBuffer });
-		uint16_t* indices = (uint16_t*)allocDmem({ numBrickIndices * sizeof(uint16_t), sce::Agc::Alignment::kBuffer });
+	obj.vertices = vertBuf;
+	obj.vertexCount = numVerts;
+	// create vertex buffer from above vertices
+	sce::Agc::Core::BufferSpec bufSpec;
+	bufSpec.initAsRegularBuffer(vertBuf, sizeof(BasicVertex), numVerts);
+	SceError error = sce::Agc::Core::initialize(&obj.vertexBuffer, &bufSpec);
+	SCE_AGC_ASSERT(error == SCE_OK);
+	sce::Agc::Core::registerResource(&obj.vertexBuffer, "Vertices");
 
-		indices[0] = 0;
-		indices[1] = 1;
-		indices[2] = 2;
-		indices[3] = 1;
-		indices[4] = 3;
-		indices[5] = 2;
+	// copy indices into new mesh index buffer
+	obj.indexBuffer = (uint16_t*)allocDmem({ numIndices * sizeof(uint16_t), sce::Agc::Alignment::kBuffer });
+	memcpy(obj.indexBuffer, indices, numIndices * sizeof(uint16_t));
+	obj.indexCount = numIndices;
 
-		for(uint i = 0; i < bricks.size(); i++)
-		{
-			vertices[0 + 4 * i] = bricks[i].vertices[0];
-			vertices[1 + 4 * i] = bricks[i].vertices[1];
-			vertices[2 + 4 * i] = bricks[i].vertices[2];
-			vertices[3 + 4 * i] = bricks[i].vertices[3];
-			//bricks[i].indexBuffer = indices; TODO : figure out why this is not working
-		}
+	obj.transform = Matrix4::translation({ 0, 0, 0 });
 
-		// Vertex buffer
-		sce::Agc::Core::BufferSpec bufSpec;
-		bufSpec.initAsRegularBuffer(vertices, sizeof(BasicVertex), numBrickVerts);
-
-		SceError error = sce::Agc::Core::initialize(&vertexBuffer, &bufSpec);
-		SCE_AGC_ASSERT(error == SCE_OK);
-		sce::Agc::Core::registerResource(&vertexBuffer, "Vertices");
-		
-
-		indexBuffer = indices;
-
-		triangle = vertices;
+	allObjects.push_back(obj);
 }
-
-
-//
-//// creates a small triangle facing a default camera view
-//void RenderManager::createRectangle() {
-//		const uint32_t numVerts = 4;
-//		const uint32_t numIndices = 6;
-//		indicesPerObject = 6;
-//
-//		BasicVertex* vertices = (BasicVertex*)allocDmem({ numVerts * sizeof(BasicVertex), sce::Agc::Alignment::kBuffer });
-//		uint16_t* indices = (uint16_t*)allocDmem({ numIndices * sizeof(uint16_t), sce::Agc::Alignment::kBuffer });
-//
-//		uint32_t v = 0;
-//		// facing the camera by default!
-//		vertices[v++] = { -0.25f, -0.25f, -0.25, 0.25f, 0.0f, 0.25f };
-//		vertices[v++] = { 0.25f, -0.25f, -0.25, 0.25f, 0.0f, 0.9f };
-//		vertices[v++] = { -0.25f, 0.25f, -0.25f, 0.9f, 0.0f, 0.25f };
-//		vertices[v++] = { 0.25f, 0.25f, -0.25, 0.25f, 0.0f, 0.25f };
-//
-//		// Vertex buffer
-//		sce::Agc::Core::BufferSpec bufSpec;
-//		bufSpec.initAsRegularBuffer(vertices, sizeof(BasicVertex), numVerts);
-//
-//		SceError error = sce::Agc::Core::initialize(&vertexBuffer, &bufSpec);
-//		SCE_AGC_ASSERT(error == SCE_OK);
-//		sce::Agc::Core::registerResource(&vertexBuffer, "Vertices");
-//
-//		// all triangles have 3 indices
-//		indices[0] = 0;
-//		indices[1] = 1;
-//		indices[2] = 2;
-//		indices[3] = 1;
-//		indices[4] = 3;
-//		indices[5] = 2;
-//
-//		indexBuffer = indices;
-//
-//		triangle = vertices;
-//}
 
 // this view matrix looks on z axis and y is up.
 void RenderManager::createTestViewMatrix() {
 
-	numObjects = 1;
+	numObjects = allObjects.size();
 	Matrix4* matrices = (Matrix4*)allocDmem({ sizeof(Matrix4) * numObjects, alignof(Matrix4) });
 	auto aspect = (float)windowX / windowY;
 
@@ -260,7 +208,7 @@ void RenderManager::createTestViewMatrix() {
 
 	for (uint i = 0; i < numObjects; i++)
 	{
-		matrices[i] = projMatrix * cameraMatrix * Matrix4::translation({ 0, 0, 0 }) * Matrix4::rotationZYX({ 0, 0, 0 }) * Matrix4::scale({ 1.0, 1.0, 1.0 });
+		matrices[i] = projMatrix * cameraMatrix * allObjects[i].transform * Matrix4::rotationZYX({ 0, 0, 0 }) * Matrix4::scale({ 1.0, 1.0, 1.0 });
 	}
 
 	sce::Agc::Core::BufferSpec spec;
@@ -271,14 +219,27 @@ void RenderManager::createTestViewMatrix() {
 	sce::Agc::Core::registerResource(&matBuffer, "MatBuffer");
 }
 
-void RenderManager::updateTrianglePos(float dx, float dy)
+void RenderManager::updatePaddlePosition(float dx, float dy)
 {
-	triangle[0].pos[0] += dx;
-	triangle[0].pos[1] += dy;
-	triangle[1].pos[0] += dx;
-	triangle[1].pos[1] += dy;
-	triangle[2].pos[0] += dx;
-	triangle[2].pos[1] += dy;
+	updateObjectPosition(1, dx, dy);
+}
+
+void RenderManager::updateBallPosition(float dx, float dy)
+{
+	updateObjectPosition(0, dx, dy);
+}
+
+vector<Object>& RenderManager::GetAllObjects()
+{
+	return allObjects;
+}
+
+void RenderManager::updateObjectPosition(int i, float dx, float dy)
+{
+	for (int j = 0; j < allObjects[i].vertexCount; ++j) {
+		allObjects[i].vertices[j].pos[0] += dx; // Update X position
+		allObjects[i].vertices[j].pos[1] += dy; // Update Y position
+	}
 }
 
 // sets up an ortho projection
@@ -479,20 +440,26 @@ void RenderManager::drawScene() {
 		// In this case we are using the same set of shaders for all draw calls, so we just set it once before we get to the draw loop.
 		ctx.setShaders(nullptr, gs, ps, sce::Agc::UcPrimitiveType::Type::kTriList);
 
+		uint32_t drawIndex = 0;
 		for (uint32_t i = 0; i < numObjects; i++)
 		{
-			// Now we have to get the inputs for the draw calls ready. One thing that is slightly special is that we compiled the
-			// vertex shader using the S_DRAW_ID semantic. The way this normally works is that a single User SGPR is reserved by
-			// the shader compiler and the HW will automatically set this User SGPR as part of issuing the multi-draw. However,
-			// in this case we are not using a multi-draw which means no free draw ID. Instead, we will use the Binder to set this 
-			// User SGPR by calling setDrawIndex(). Since this is the per-draw ID it needs to be updated for every draw call.
-			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
-				.setBuffers(0, 1, &vertexBuffer)
-				.setBuffers(1, 1, &matBuffer)
-				.setDrawIndex(i);
+			if (allObjects[i].isActive)
+			{
+				// Now we have to get the inputs for the draw calls ready. One thing that is slightly special is that we compiled the
+				// vertex shader using the S_DRAW_ID semantic. The way this normally works is that a single User SGPR is reserved by
+				// the shader compiler and the HW will automatically set this User SGPR as part of issuing the multi-draw. However,
+				// in this case we are not using a multi-draw which means no free draw ID. Instead, we will use the Binder to set this 
+				// User SGPR by calling setDrawIndex(). Since this is the per-draw ID it needs to be updated for every draw call.
+				ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+					.setBuffers(0, 1, &allObjects[i].vertexBuffer)
+					.setBuffers(1, 1, &matBuffer)
+					.setDrawIndex(drawIndex);
 
-			// this would need to change if objects with differing numbers of indices were drawn
-			ctx.drawIndex(indicesPerObject, indexBuffer);
+				// this would need to change if objects with differing numbers of indices were drawn
+				ctx.drawIndex(allObjects[i].indexCount, allObjects[i].indexBuffer);
+
+				drawIndex++;
+			}
 		}
 
 		// Submit a flip via the GPU.
