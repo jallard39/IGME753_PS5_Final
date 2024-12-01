@@ -8,14 +8,18 @@
 const uint32_t SCREEN_WIDTH = 3840;
 const uint32_t SCREEN_HEIGHT = 2160;
 
-const float PADDLE_SPEED = 0.05f;
-const float BALL_SPEED = 0.015f;
 float curentPos = 0.0f;
 
 const float PLAYER_START[2] = { 0.0f, 0.0f };
 const float PLAYER_SIZE = 0.1f;
+const float PLAYER_SPEED = 0.015f;
+
 int playerDirectionX = 1;
 int playerDirectionY = 0;
+int prevPlayerDirectionX = playerDirectionX;
+int prevPlayerDirectionY = playerDirectionY;
+
+vector<Object> walls;
 
 SceUserServiceUserId userId; // user information
 int32_t controllerHandle; 
@@ -143,7 +147,7 @@ bool handleUserEvents(RenderManager* renderManager) {
 
 		// DPAD
 		// Up
-		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_UP) != 0 && !upPressed)
+		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_UP) == 0 && !upPressed)
 		{
 			
 		}
@@ -160,7 +164,7 @@ bool handleUserEvents(RenderManager* renderManager) {
 		}
 	
 		// Down
-		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_DOWN) != 0 && !downPressed)
+		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_DOWN) == 0 && !downPressed)
 		{
 			
 		}
@@ -177,7 +181,7 @@ bool handleUserEvents(RenderManager* renderManager) {
 		}
 
 		// Left
-		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_LEFT) != 0 && !leftPressed)
+		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_LEFT) == 0 && !leftPressed)
 		{
 			
 		}
@@ -194,7 +198,7 @@ bool handleUserEvents(RenderManager* renderManager) {
 		}
 
 		// Right
-		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_RIGHT) != 0 && !rightPressed)
+		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_RIGHT) == 0 && !rightPressed)
 		{
 			
 		}
@@ -237,29 +241,73 @@ void createMaze(RenderManager* renderManager)
 		{ 2.0f, 1.0f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] },
 		{ -2.0f, 1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] }
 	};
-	renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
+	walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
 
 	// Create bottom wall
 	wallVerts[0] = { -2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
 	wallVerts[1] = { 2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
 	wallVerts[2] = { 2.0f, -0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
 	wallVerts[3] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
+	walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
 
 	// Create left wall
 	wallVerts[0] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
 	wallVerts[1] = { -1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
 	wallVerts[2] = { -1.9f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
 	wallVerts[3] = { -2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
+	walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
 
 	// Create right wall
 	wallVerts[0] = { 1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
 	wallVerts[1] = { 2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
 	wallVerts[2] = { 2.0f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
 	wallVerts[3] = { 1.9f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
+	walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
 
+	// Create walls with a dynamic grid system - THROWS AN ERROR <<<<<<<
+	// Some kind of memory problem, can't handle dimensions this large. 
+	// Width = 20, Height = 2 works but Width = 25, Height = 2 doesn't
+
+	/*const float WALL_WIDTH = 0.1f;
+	const int MAZE_WIDTH = 30;
+	const int MAZE_HEIGHT = 15;
+
+	int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] = 
+	{
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+	};
+
+	float startX = 0 - (MAZE_WIDTH / 2) * WALL_WIDTH;
+	float startY = (MAZE_HEIGHT / 2) * WALL_WIDTH;
+
+	for (int i = 0; i < MAZE_HEIGHT; i++) 
+	{
+		for (int j = 0; j < MAZE_WIDTH; j++)
+		{
+			if (mazeTemplate[i][j] == 1)
+			{
+				wallVerts[0] = { startX + (WALL_WIDTH * j), startY - (WALL_WIDTH * (i + 1)), -0.25f, BLUE[0], BLUE[1], BLUE[2]};
+				wallVerts[1] = { startX + (WALL_WIDTH * (j + 1)), startY - (WALL_WIDTH * (i + 1)), -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+				wallVerts[2] = { startX + (WALL_WIDTH * (j + 1)), startY - (WALL_WIDTH * i), -0.25f,  BLUE[0], BLUE[1], BLUE[2]};
+				wallVerts[3] = { startX + (WALL_WIDTH * j), startY - (WALL_WIDTH * i), -0.25f, BLUE[0], BLUE[1], BLUE[2]};
+				renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
+			}
+		}
+	}*/
 }
 
 int main(int argc, const char *argv[])
@@ -317,36 +365,59 @@ int main(int argc, const char *argv[])
 		// loop until exit
 		while (!done) {
 
-			renderManager->updateBallPosition(BALL_SPEED * playerDirectionX, BALL_SPEED * playerDirectionY);
+			// =========================================================
+			// Wall Collision Detection - AABB from bottom left corner
+			// =========================================================
 
-			if (player.vertices[0].pos[0] - RADIUS < -2.15f) { playerDirectionX = 0; }
-			if (player.vertices[0].pos[0] + RADIUS > 2.15f) { playerDirectionX = 0; }
-			if (player.vertices[0].pos[1] - RADIUS < -1.25f) { playerDirectionY = 0; }
-			if (player.vertices[0].pos[1] + RADIUS > 1.25f) { playerDirectionY = 0; }
+			// Get player location next frame
+			float playerNextX = player.vertices[0].pos[0] + PLAYER_SPEED * playerDirectionX;
+			float playerNextY = player.vertices[0].pos[1] + PLAYER_SPEED * playerDirectionY;
 
-			// ===================================================
-			// Collision Detection - AABB from bottom left corner
-			// ===================================================
-
-			// Get player bounds
-			float playerX = player.vertices[0].pos[0];
-			float playerY = player.vertices[0].pos[1];
-
-			for (int i = 1; i < allObjects.size(); i++) 
+			for (int i = 0; i < walls.size(); i++) 
 			{
 				// Get rectangle bounds
-				float wallX = allObjects[i].vertices[0].pos[0];
-				float wallY = allObjects[i].vertices[0].pos[1];
-				float wallWidth = allObjects[i].vertices[1].pos[0] - wallX;
-				float wallHeight = allObjects[i].vertices[3].pos[1] - wallY;
+				float wallX = walls[i].vertices[0].pos[0];
+				float wallY = walls[i].vertices[0].pos[1];
+				float wallWidth = walls[i].vertices[1].pos[0] - wallX;
+				float wallHeight = walls[i].vertices[3].pos[1] - wallY;
 
 				// Check for collision
-				if (playerX < wallX + wallWidth && playerX + PLAYER_SIZE > wallX &&
-					playerY < wallY + wallHeight && playerY + PLAYER_SIZE > wallY) 
+				if (playerNextX < wallX + wallWidth && playerNextX + PLAYER_SIZE > wallX &&
+					playerNextY < wallY + wallHeight && playerNextY + PLAYER_SIZE > wallY) 
 				{
 					// Differentiate between horizontal and vertical directions
+					if (playerDirectionY == 0) // moving horizontally
+					{
+						if (prevPlayerDirectionX == 0) // switching directions
+						{
+							playerDirectionX = prevPlayerDirectionX;
+							playerDirectionY = prevPlayerDirectionY;
+						}
+						else
+						{
+							playerDirectionX = 0;
+						}
+					}
+					else if (playerDirectionX == 0) // moving vertically
+					{
+						if (prevPlayerDirectionY == 0) // switching directions
+						{
+							playerDirectionX = prevPlayerDirectionX;
+							playerDirectionY = prevPlayerDirectionY;
+						}
+						else
+						{
+							playerDirectionY = 0;
+						}
+					}
+
 				}
 			}
+
+			renderManager->updateBallPosition(PLAYER_SPEED * playerDirectionX, PLAYER_SPEED * playerDirectionY);
+
+			prevPlayerDirectionX = playerDirectionX;
+			prevPlayerDirectionY = playerDirectionY;
 			
 			// =====================================
 			// OLD COLLISION DETECTION
@@ -436,45 +507,6 @@ int main(int argc, const char *argv[])
 			//		{
 			//			allObjects[i].isActive = false;
 			//		}
-
-			//		// ===== AABB Collision Code (2 rectangles) =====
-			//		// 
-			//		//if (ball.vertices[3].pos[0] < allObjects[i].vertices[3].pos[0] + BRICK_LENGTH &&
-			//		//	ball.vertices[3].pos[0] + 0.1f > allObjects[i].vertices[3].pos[0] &&                 // TODO: Change the length of the ball
-			//		//	ball.vertices[3].pos[1] < allObjects[i].vertices[3].pos[1] + BRICK_HEIGHT &&
-			//		//	ball.vertices[3].pos[1] + 0.1f > allObjects[i].vertices[3].pos[1])
-			//		//{
-
-			//		//	float leftPenetration = allObjects[i].vertices[1].pos[0] - ball.vertices[0].pos[0];
-			//		//	float rightPenetration = ball.vertices[1].pos[0] - allObjects[i].vertices[0].pos[0];
-			//		//	float topPenetration = allObjects[i].vertices[2].pos[1] - ball.vertices[0].pos[1];
-			//		//	float bottomPenetration = ball.vertices[2].pos[1] - allObjects[i].vertices[0].pos[1];
-
-			//		//	if (i != 1)
-			//		//	{
-			//		//		allObjects[i].isActive = false;
-			//		//	}
-
-			//		//	if (leftPenetration < topPenetration && leftPenetration < bottomPenetration ||
-			//		//		rightPenetration < topPenetration && rightPenetration < bottomPenetration)
-			//		//	{
-			//		//		directionX *= -1;
-			//		//		printf("left or right collision\n");
-			//		//	}
-			//		//	else if (topPenetration < leftPenetration && topPenetration < rightPenetration ||
-			//		//		bottomPenetration < leftPenetration && bottomPenetration < rightPenetration)
-			//		//	{
-			//		//		directionY *= -1;
-			//		//		printf("top or bottom collision\n");
-			//		//	}
-			//		//	else
-			//		//	{
-			//		//		printf("Both???\n");
-			//		//		directionX *= -1;
-			//		//		directionY *= -1;
-			//		//	}
-
-			//		//}
 			//	}
 			//}
 

@@ -168,7 +168,7 @@ RenderManager::~RenderManager(void)
 {
 }
 
-void RenderManager::createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices)
+Object RenderManager::createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices)
 {
 	Object obj;
 
@@ -193,6 +193,7 @@ void RenderManager::createObject(BasicVertex* vertices, uint32_t numVerts, uint1
 	obj.transform = Matrix4::translation({ 0, 0, 0 });
 
 	allObjects.push_back(obj);
+	return obj;
 }
 
 // this view matrix looks on z axis and y is up.
