@@ -100,8 +100,10 @@ public:
 	void setWindowSize(int winX, int winY) { windowX = winX; windowY = winY; }
 	void setClearColor(uint32_t r, uint32_t g, uint32_t b, uint32_t a) { 
 		rtClearValue = sce::Agc::Core::Encoder::raw(r, g, b, a); }
-	Object createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);
-	void createTestViewMatrix();
+	Object createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);	
+	Object createRectangle(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);
+	Matrix4* createViewMatrix();
+	Matrix4 creatOriginViewMatrix();
 	void updatePaddlePosition(float dx, float dy);
 	void updateBallPosition(float dx, float dy);
 	vector<Object>& GetAllObjects();

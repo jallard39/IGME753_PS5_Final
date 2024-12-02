@@ -1,7 +1,22 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Platforms\Prospero\Prospero.CppBuild.targets(100,5): warning MSB8028: The intermediate directory (Prospero_Debug\) contains files shared from another project (BreakOut.vcxproj, RuniJ_IntroPS5.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   GameMain.cpp
-D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\GameMain.cpp(231,13): warning : unused variable 'RADIUS' [-Wunused-const-variable]
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(231,13): warning : unused variable 'RADIUS' [-Wunused-const-variable]
     231 | const float RADIUS = 0.05f;
         |             ^~~~~~
   1 warning generated.
-  RuniJ_IntroPS5.vcxproj -> D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\Prospero_Debug\PS5_Final.elf
+  RenderManager.cpp
+  In file included from D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\RenderManager.cpp:1:
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(68,11): warning : private field 'indicesPerObject' is not used [-Wunused-private-field]
+     68 |         uint32_t indicesPerObject;
+        |                  ^
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(69,25): warning : private field 'vertexBuffer' is not used [-Wunused-private-field]
+     69 |         sce::Agc::Core::Buffer vertexBuffer;
+        |                                ^
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(70,12): warning : private field 'indexBuffer' is not used [-Wunused-private-field]
+     70 |         uint16_t* indexBuffer = nullptr;
+        |                   ^
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(72,15): warning : private field 'triangle' is not used [-Wunused-private-field]
+     72 |         BasicVertex* triangle;
+        |                      ^
+  4 warnings generated.
+  RuniJ_IntroPS5.vcxproj -> D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\Prospero_Debug\PS5_Final.elf

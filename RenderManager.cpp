@@ -190,16 +190,68 @@ Object RenderManager::createObject(BasicVertex* vertices, uint32_t numVerts, uin
 	memcpy(obj.indexBuffer, indices, numIndices * sizeof(uint16_t));
 	obj.indexCount = numIndices;
 
+	// TODO: Change the Translation with the Matrix?
 	obj.transform = Matrix4::translation({ 0, 0, 0 });
 
 	allObjects.push_back(obj);
 	return obj;
 }
 
+
+bool firstRectangle = true;
+uint16_t* rec_IndexBuffer;
+uint32_t rec_IndexCount;
+Object RenderManager::createRectangle(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices)
+{
+	Object obj;
+
+	// copy vertices into local memory
+	BasicVertex* vertBuf = (BasicVertex*)allocDmem({ numVerts * sizeof(BasicVertex), sce::Agc::Alignment::kBuffer });
+	memcpy(vertBuf, vertices, numVerts * sizeof(BasicVertex));
+
+	obj.vertices = vertBuf;
+	obj.vertexCount = numVerts;
+	// create vertex buffer from above vertices
+	sce::Agc::Core::BufferSpec bufSpec;
+	bufSpec.initAsRegularBuffer(vertBuf, sizeof(BasicVertex), numVerts);
+	SceError error = sce::Agc::Core::initialize(&obj.vertexBuffer, &bufSpec);
+	SCE_AGC_ASSERT(error == SCE_OK);
+	sce::Agc::Core::registerResource(&obj.vertexBuffer, "Vertices");
+	// TODO: Change the Translation with the Matrix?
+	obj.transform = Matrix4::translation({ 0, 0, 0 });
+
+	if (firstRectangle)
+	{
+		firstRectangle = false;	
+
+		// copy indices into new mesh index buffer
+		obj.indexBuffer = (uint16_t*)allocDmem({ numIndices * sizeof(uint16_t), sce::Agc::Alignment::kBuffer });
+		rec_IndexBuffer = obj.indexBuffer;
+		memcpy(obj.indexBuffer, indices, numIndices * sizeof(uint16_t));
+		obj.indexCount = numIndices;
+		rec_IndexCount = numIndices;
+
+		allObjects.push_back(obj);
+		return obj;
+	}
+	else
+	{
+		// copy indices into new mesh index buffer
+		obj.indexBuffer = rec_IndexBuffer;
+		memcpy(obj.indexBuffer, indices, numIndices * sizeof(uint16_t));
+		obj.indexCount = numIndices;
+
+		allObjects.push_back(obj);
+		return obj;
+	}
+}
+
+
 // this view matrix looks on z axis and y is up.
-void RenderManager::createTestViewMatrix() {
+Matrix4* RenderManager::createViewMatrix() {
 
 	numObjects = allObjects.size();
+	
 	Matrix4* matrices = (Matrix4*)allocDmem({ sizeof(Matrix4) * numObjects, alignof(Matrix4) });
 	auto aspect = (float)windowX / windowY;
 
@@ -209,7 +261,7 @@ void RenderManager::createTestViewMatrix() {
 
 	for (uint i = 0; i < numObjects; i++)
 	{
-		matrices[i] = projMatrix * cameraMatrix * allObjects[i].transform * Matrix4::rotationZYX({ 0, 0, 0 }) * Matrix4::scale({ 1.0, 1.0, 1.0 });
+		matrices[i] = projMatrix * cameraMatrix * Matrix4::translation({ 0, 0, 0 }) * Matrix4::rotationZYX({ 0, 0, 0 }) * Matrix4::scale({ 1.0, 1.0, 1.0 });
 	}
 
 	sce::Agc::Core::BufferSpec spec;
@@ -218,6 +270,22 @@ void RenderManager::createTestViewMatrix() {
 	SceError error = sce::Agc::Core::initialize(&matBuffer, &spec);
 	SCE_AGC_ASSERT(error == SCE_OK);
 	sce::Agc::Core::registerResource(&matBuffer, "MatBuffer");
+	return matrices;
+
+}
+
+Matrix4 RenderManager::creatOriginViewMatrix() {
+
+
+	Matrix4 origin;// = (Matrix4*)allocDmem({ sizeof(Matrix4) * 1, alignof(Matrix4) });
+	auto aspect = (float)windowX / windowY;
+
+	Matrix4 projMatrix = Matrix4::perspective(90.f * float(1.74532925199432957692e-2), aspect, 0.05, 10);
+
+	Matrix4 cameraMatrix = Matrix4::lookAt({ 0,0,1 }, { 0,0,0 }, { 0,1,0 });
+
+	origin = projMatrix * cameraMatrix * Matrix4::translation({ 0, 0, 0 }) * Matrix4::rotationZYX({ 0, 0, 0 }) * Matrix4::scale({ 1.0, 1.0, 1.0 });
+	return origin;
 }
 
 void RenderManager::updatePaddlePosition(float dx, float dy)

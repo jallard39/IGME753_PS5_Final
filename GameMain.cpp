@@ -268,11 +268,11 @@ void createMaze(RenderManager* renderManager)
 	// Some kind of memory problem, can't handle dimensions this large. 
 	// Width = 20, Height = 2 works but Width = 25, Height = 2 doesn't
 
-	/*const float WALL_WIDTH = 0.1f;
+	const float WALL_WIDTH = 0.1f;
 	const int MAZE_WIDTH = 30;
 	const int MAZE_HEIGHT = 15;
 
-	int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] = 
+	/*int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] =
 	{
 		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
@@ -352,7 +352,10 @@ int main(int argc, const char *argv[])
 		// Create maze
 		createMaze(renderManager);
 
-		renderManager->createTestViewMatrix();
+		Matrix4* matrices = renderManager->createViewMatrix();
+		Matrix4 origin = renderManager->creatOriginViewMatrix();
+		matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f }) * Matrix4::scale({ PLAYER_SIZE,PLAYER_SIZE,1.0f });
+
 
 		printf("## Initialization has gone all right ##\n");
 
@@ -419,6 +422,7 @@ int main(int argc, const char *argv[])
 			prevPlayerDirectionX = playerDirectionX;
 			prevPlayerDirectionY = playerDirectionY;
 			
+			{
 			// =====================================
 			// OLD COLLISION DETECTION
 			// =====================================
@@ -509,6 +513,7 @@ int main(int argc, const char *argv[])
 			//		}
 			//	}
 			//}
+			}
 
 			renderManager->drawScene();
 			// Check to see if user has requested to quit the loop and update simple app stuff
