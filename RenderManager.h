@@ -69,8 +69,17 @@ private:
 	sce::Agc::Core::Buffer vertexBuffer;
 	uint16_t* indexBuffer = nullptr;
 	sce::Agc::Core::Buffer matBuffer;
-	BasicVertex* triangle;
 	vector<Object> allObjects;
+
+	// Rectangle Info
+	uint32_t numRectangles = 0;
+	uint32_t indicesPerRect;
+	uint16_t* rectangleIndexBuffer = nullptr;
+
+	// Circle Info
+	uint32_t numCircles = 0;
+	uint32_t indicesPerCircle;
+	uint16_t* circleIndexBuffer = nullptr;
 
 	// sce variables
 	SceError error;
@@ -101,7 +110,8 @@ public:
 	void setClearColor(uint32_t r, uint32_t g, uint32_t b, uint32_t a) { 
 		rtClearValue = sce::Agc::Core::Encoder::raw(r, g, b, a); }
 	Object createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);	
-	Object createRectangle(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);
+	void createBasicGeometry();
+	void createRect(uint32_t numRect);
 	Matrix4* createViewMatrix();
 	Matrix4 creatOriginViewMatrix();
 	void updatePaddlePosition(float dx, float dy);

@@ -231,38 +231,49 @@ uint16_t rectangleIndices[6] = { 0, 1, 2, 0, 2, 3 };
 const float RADIUS = 0.05f;
 //const uint16_t SEGMENTS = 12;
 
-void createMaze(RenderManager* renderManager)
+void createMaze(Matrix4* matrices, Matrix4 origin)
 {
-	// Create top wall
-	BasicVertex wallVerts[4] =
-	{
-		{ -2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2]},
-		{ 2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] },
-		{ 2.0f, 1.0f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] },
-		{ -2.0f, 1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] }
-	};
-	walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
+	// Left wall
+	matrices[2] = origin * Matrix4::translation({ -2.2, 0, 0.0f }) * Matrix4::scale({ 0.2,5,1.0f });
+	// Right wall
+	matrices[3] = origin * Matrix4::translation({ 2.2, 0, 0.0f }) * Matrix4::scale({ 0.2,5,1.0f });
+	// Top wall
+	matrices[4] = origin * Matrix4::translation({ 0, 1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
+	// Bottom wall
+	matrices[5] = origin * Matrix4::translation({ 0, -1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
 
-	// Create bottom wall
-	wallVerts[0] = { -2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	wallVerts[1] = { 2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	wallVerts[2] = { 2.0f, -0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
-	wallVerts[3] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
+	//// Create top wall
+	//BasicVertex wallVerts[4] =
+	//{
+	//	{ -2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2]},
+	//	{ 2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] },
+	//	{ 2.0f, 1.0f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] },
+	//	{ -2.0f, 1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] }
+	//};
+	//walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
+	//
 
-	// Create left wall
-	wallVerts[0] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	wallVerts[1] = { -1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	wallVerts[2] = { -1.9f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
-	wallVerts[3] = { -2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
 
-	// Create right wall
-	wallVerts[0] = { 1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	wallVerts[1] = { 2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	wallVerts[2] = { 2.0f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
-	wallVerts[3] = { 1.9f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
+	//// Create bottom wall
+	//wallVerts[0] = { -2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	//wallVerts[1] = { 2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	//wallVerts[2] = { 2.0f, -0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
+	//wallVerts[3] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	//walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
+
+	//// Create left wall
+	//wallVerts[0] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	//wallVerts[1] = { -1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	//wallVerts[2] = { -1.9f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
+	//wallVerts[3] = { -2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	//walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
+
+	//// Create right wall
+	//wallVerts[0] = { 1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	//wallVerts[1] = { 2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	//wallVerts[2] = { 2.0f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
+	//wallVerts[3] = { 1.9f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
+	//walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
 
 	// Create walls with a dynamic grid system - THROWS AN ERROR <<<<<<<
 	// Some kind of memory problem, can't handle dimensions this large. 
@@ -349,13 +360,15 @@ int main(int argc, const char *argv[])
 		//	circleIndices[i * 3 + 2] = (i + 1) % SEGMENTS + 1; // Next vertex index, wraps around
 		//}
 
-		// Create maze
-		createMaze(renderManager);
+		renderManager->createBasicGeometry();
+		renderManager->createRect(50);
 
 		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();
-		matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f }) * Matrix4::scale({ PLAYER_SIZE,PLAYER_SIZE,1.0f });
+		//matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f }) * Matrix4::scale({ PLAYER_SIZE,PLAYER_SIZE,1.0f });
 
+		// Create maze
+		createMaze(matrices, origin);
 
 		printf("## Initialization has gone all right ##\n");
 
@@ -372,55 +385,55 @@ int main(int argc, const char *argv[])
 			// Wall Collision Detection - AABB from bottom left corner
 			// =========================================================
 
-			// Get player location next frame
-			float playerNextX = player.vertices[0].pos[0] + PLAYER_SPEED * playerDirectionX;
-			float playerNextY = player.vertices[0].pos[1] + PLAYER_SPEED * playerDirectionY;
+			//// Get player location next frame
+			//float playerNextX = player.vertices[0].pos[0] + PLAYER_SPEED * playerDirectionX;
+			//float playerNextY = player.vertices[0].pos[1] + PLAYER_SPEED * playerDirectionY;
 
-			for (int i = 0; i < walls.size(); i++) 
-			{
-				// Get rectangle bounds
-				float wallX = walls[i].vertices[0].pos[0];
-				float wallY = walls[i].vertices[0].pos[1];
-				float wallWidth = walls[i].vertices[1].pos[0] - wallX;
-				float wallHeight = walls[i].vertices[3].pos[1] - wallY;
+			//for (int i = 0; i < walls.size(); i++) 
+			//{
+			//	// Get rectangle bounds
+			//	float wallX = walls[i].vertices[0].pos[0];
+			//	float wallY = walls[i].vertices[0].pos[1];
+			//	float wallWidth = walls[i].vertices[1].pos[0] - wallX;
+			//	float wallHeight = walls[i].vertices[3].pos[1] - wallY;
 
-				// Check for collision
-				if (playerNextX < wallX + wallWidth && playerNextX + PLAYER_SIZE > wallX &&
-					playerNextY < wallY + wallHeight && playerNextY + PLAYER_SIZE > wallY) 
-				{
-					// Differentiate between horizontal and vertical directions
-					if (playerDirectionY == 0) // moving horizontally
-					{
-						if (prevPlayerDirectionX == 0) // switching directions
-						{
-							playerDirectionX = prevPlayerDirectionX;
-							playerDirectionY = prevPlayerDirectionY;
-						}
-						else
-						{
-							playerDirectionX = 0;
-						}
-					}
-					else if (playerDirectionX == 0) // moving vertically
-					{
-						if (prevPlayerDirectionY == 0) // switching directions
-						{
-							playerDirectionX = prevPlayerDirectionX;
-							playerDirectionY = prevPlayerDirectionY;
-						}
-						else
-						{
-							playerDirectionY = 0;
-						}
-					}
+			//	// Check for collision
+			//	if (playerNextX < wallX + wallWidth && playerNextX + PLAYER_SIZE > wallX &&
+			//		playerNextY < wallY + wallHeight && playerNextY + PLAYER_SIZE > wallY) 
+			//	{
+			//		// Differentiate between horizontal and vertical directions
+			//		if (playerDirectionY == 0) // moving horizontally
+			//		{
+			//			if (prevPlayerDirectionX == 0) // switching directions
+			//			{
+			//				playerDirectionX = prevPlayerDirectionX;
+			//				playerDirectionY = prevPlayerDirectionY;
+			//			}
+			//			else
+			//			{
+			//				playerDirectionX = 0;
+			//			}
+			//		}
+			//		else if (playerDirectionX == 0) // moving vertically
+			//		{
+			//			if (prevPlayerDirectionY == 0) // switching directions
+			//			{
+			//				playerDirectionX = prevPlayerDirectionX;
+			//				playerDirectionY = prevPlayerDirectionY;
+			//			}
+			//			else
+			//			{
+			//				playerDirectionY = 0;
+			//			}
+			//		}
 
-				}
-			}
+			//	}
+			//}
 
-			renderManager->updateBallPosition(PLAYER_SPEED * playerDirectionX, PLAYER_SPEED * playerDirectionY);
+			//renderManager->updateBallPosition(PLAYER_SPEED * playerDirectionX, PLAYER_SPEED * playerDirectionY);
 
-			prevPlayerDirectionX = playerDirectionX;
-			prevPlayerDirectionY = playerDirectionY;
+			//prevPlayerDirectionX = playerDirectionX;
+			//prevPlayerDirectionY = playerDirectionY;
 			
 			{
 			// =====================================

@@ -198,60 +198,60 @@ Object RenderManager::createObject(BasicVertex* vertices, uint32_t numVerts, uin
 }
 
 
-bool firstRectangle = true;
-uint16_t* rec_IndexBuffer;
-uint32_t rec_IndexCount;
-Object RenderManager::createRectangle(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices)
+
+void RenderManager::createBasicGeometry()
 {
-	Object obj;
+	// rect
+	const uint32_t numRectIndices = 6;
+	indicesPerRect = numRectIndices;
+	// circle
 
-	// copy vertices into local memory
-	BasicVertex* vertBuf = (BasicVertex*)allocDmem({ numVerts * sizeof(BasicVertex), sce::Agc::Alignment::kBuffer });
-	memcpy(vertBuf, vertices, numVerts * sizeof(BasicVertex));
 
-	obj.vertices = vertBuf;
-	obj.vertexCount = numVerts;
-	// create vertex buffer from above vertices
+
+	const uint32_t numVerts = 4;
+
+	BasicVertex* vertices = (BasicVertex*)allocDmem({ numVerts * sizeof(BasicVertex), sce::Agc::Alignment::kBuffer });
+	uint16_t* RectIndices = (uint16_t*)allocDmem({ numRectIndices * sizeof(uint16_t), sce::Agc::Alignment::kBuffer });
+
+	uint32_t v = 0;
+
+	//rect
+	vertices[v++] = { -0.25f, -0.25f, -0.25f, 0.25f, 1.0f, 0.25f };
+	vertices[v++] = { 0.25f, -0.25f, -0.25f, 0.25f, 1.0f, 0.9f };
+	vertices[v++] = { -0.25f, 0.25f, -0.25f, 0.9f, 1.0f, 0.25f };
+	vertices[v++] = { 0.25f, 0.25f, -0.25f, 0.9f, 1.0f, 0.9f };
+
+
 	sce::Agc::Core::BufferSpec bufSpec;
-	bufSpec.initAsRegularBuffer(vertBuf, sizeof(BasicVertex), numVerts);
-	SceError error = sce::Agc::Core::initialize(&obj.vertexBuffer, &bufSpec);
+	bufSpec.initAsRegularBuffer(vertices, sizeof(BasicVertex), 4);
+
+	SceError error = sce::Agc::Core::initialize(&vertexBuffer, &bufSpec);
 	SCE_AGC_ASSERT(error == SCE_OK);
-	sce::Agc::Core::registerResource(&obj.vertexBuffer, "Vertices");
-	// TODO: Change the Translation with the Matrix?
-	obj.transform = Matrix4::translation({ 0, 0, 0 });
+	sce::Agc::Core::registerResource(&vertexBuffer, "Vertex");
 
-	if (firstRectangle)
-	{
-		firstRectangle = false;	
 
-		// copy indices into new mesh index buffer
-		obj.indexBuffer = (uint16_t*)allocDmem({ numIndices * sizeof(uint16_t), sce::Agc::Alignment::kBuffer });
-		rec_IndexBuffer = obj.indexBuffer;
-		memcpy(obj.indexBuffer, indices, numIndices * sizeof(uint16_t));
-		obj.indexCount = numIndices;
-		rec_IndexCount = numIndices;
+	//Triangle 1
+	RectIndices[0] = 0;
+	RectIndices[1] = 1;
+	RectIndices[2] = 2;
+	//Triangle 2
+	RectIndices[3] = 3;
+	RectIndices[4] = 2;
+	RectIndices[5] = 1;
 
-		allObjects.push_back(obj);
-		return obj;
-	}
-	else
-	{
-		// copy indices into new mesh index buffer
-		obj.indexBuffer = rec_IndexBuffer;
-		memcpy(obj.indexBuffer, indices, numIndices * sizeof(uint16_t));
-		obj.indexCount = numIndices;
+	rectangleIndexBuffer = RectIndices;
+}
 
-		allObjects.push_back(obj);
-		return obj;
-	}
+void RenderManager::createRect(uint32_t numRect)
+{
+	numObjects += numRect;
+	numRectangles = numRect;
 }
 
 
 // this view matrix looks on z axis and y is up.
 Matrix4* RenderManager::createViewMatrix() {
 
-	numObjects = allObjects.size();
-	
 	Matrix4* matrices = (Matrix4*)allocDmem({ sizeof(Matrix4) * numObjects, alignof(Matrix4) });
 	auto aspect = (float)windowX / windowY;
 
@@ -510,25 +510,35 @@ void RenderManager::drawScene() {
 		ctx.setShaders(nullptr, gs, ps, sce::Agc::UcPrimitiveType::Type::kTriList);
 
 		uint32_t drawIndex = 0;
-		for (uint32_t i = 0; i < numObjects; i++)
+		//for (uint32_t i = 0; i < numObjects; i++)
+		//{
+		//	if (allObjects[i].isActive)
+		//	{
+		//		// Now we have to get the inputs for the draw calls ready. One thing that is slightly special is that we compiled the
+		//		// vertex shader using the S_DRAW_ID semantic. The way this normally works is that a single User SGPR is reserved by
+		//		// the shader compiler and the HW will automatically set this User SGPR as part of issuing the multi-draw. However,
+		//		// in this case we are not using a multi-draw which means no free draw ID. Instead, we will use the Binder to set this 
+		//		// User SGPR by calling setDrawIndex(). Since this is the per-draw ID it needs to be updated for every draw call.
+		//		ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+		//			.setBuffers(0, 1, &allObjects[i].vertexBuffer)
+		//			.setBuffers(1, 1, &matBuffer)
+		//			.setDrawIndex(drawIndex);
+
+		//		// this would need to change if objects with differing numbers of indices were drawn
+		//		ctx.drawIndex(allObjects[i].indexCount, allObjects[i].indexBuffer);
+
+		//		drawIndex++;
+		//	}
+		//}
+
+		for (uint32_t i = 0; i < numRectangles; i++)
 		{
-			if (allObjects[i].isActive)
-			{
-				// Now we have to get the inputs for the draw calls ready. One thing that is slightly special is that we compiled the
-				// vertex shader using the S_DRAW_ID semantic. The way this normally works is that a single User SGPR is reserved by
-				// the shader compiler and the HW will automatically set this User SGPR as part of issuing the multi-draw. However,
-				// in this case we are not using a multi-draw which means no free draw ID. Instead, we will use the Binder to set this 
-				// User SGPR by calling setDrawIndex(). Since this is the per-draw ID it needs to be updated for every draw call.
-				ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
-					.setBuffers(0, 1, &allObjects[i].vertexBuffer)
-					.setBuffers(1, 1, &matBuffer)
-					.setDrawIndex(drawIndex);
+			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+				.setBuffers(0, 1, &vertexBuffer)
+				.setBuffers(1, 1, &matBuffer)
+				.setDrawIndex(i);
 
-				// this would need to change if objects with differing numbers of indices were drawn
-				ctx.drawIndex(allObjects[i].indexCount, allObjects[i].indexBuffer);
-
-				drawIndex++;
-			}
+			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
 		}
 
 		// Submit a flip via the GPU.

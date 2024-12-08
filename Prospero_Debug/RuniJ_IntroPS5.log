@@ -1,22 +1,43 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Platforms\Prospero\Prospero.CppBuild.targets(100,5): warning MSB8028: The intermediate directory (Prospero_Debug\) contains files shared from another project (BreakOut.vcxproj, RuniJ_IntroPS5.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   GameMain.cpp
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(282,14): warning : unused variable 'WALL_WIDTH' [-Wunused-variable]
+    282 |         const float WALL_WIDTH = 0.1f;
+        |                     ^~~~~~~~~~
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(283,12): warning : unused variable 'MAZE_WIDTH' [-Wunused-variable]
+    283 |         const int MAZE_WIDTH = 30;
+        |                   ^~~~~~~~~~
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(284,12): warning : unused variable 'MAZE_HEIGHT' [-Wunused-variable]
+    284 |         const int MAZE_HEIGHT = 15;
+        |                   ^~~~~~~~~~~
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(378,10): warning : unused variable 'player' [-Wunused-variable]
+    378 |                 Object player = allObjects[0];
+        |                        ^~~~~~
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(15,13): warning : unused variable 'PLAYER_SPEED' [-Wunused-const-variable]
+     15 | const float PLAYER_SPEED = 0.015f;
+        |             ^~~~~~~~~~~~
 D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(231,13): warning : unused variable 'RADIUS' [-Wunused-const-variable]
     231 | const float RADIUS = 0.05f;
         |             ^~~~~~
-  1 warning generated.
+  6 warnings generated.
   RenderManager.cpp
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\RenderManager.cpp(512,12): warning : unused variable 'drawIndex' [-Wunused-variable]
+    512 |                 uint32_t drawIndex = 0;
+        |                          ^~~~~~~~~
   In file included from D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\RenderManager.cpp:1:
 D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(68,11): warning : private field 'indicesPerObject' is not used [-Wunused-private-field]
      68 |         uint32_t indicesPerObject;
         |                  ^
-D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(69,25): warning : private field 'vertexBuffer' is not used [-Wunused-private-field]
-     69 |         sce::Agc::Core::Buffer vertexBuffer;
-        |                                ^
 D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(70,12): warning : private field 'indexBuffer' is not used [-Wunused-private-field]
      70 |         uint16_t* indexBuffer = nullptr;
         |                   ^
-D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(72,15): warning : private field 'triangle' is not used [-Wunused-private-field]
-     72 |         BasicVertex* triangle;
-        |                      ^
-  4 warnings generated.
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(80,11): warning : private field 'numCircles' is not used [-Wunused-private-field]
+     80 |         uint32_t numCircles = 0;
+        |                  ^
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(81,11): warning : private field 'indicesPerCircle' is not used [-Wunused-private-field]
+     81 |         uint32_t indicesPerCircle;
+        |                  ^
+D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final/RenderManager.h(82,12): warning : private field 'circleIndexBuffer' is not used [-Wunused-private-field]
+     82 |         uint16_t* circleIndexBuffer = nullptr;
+        |                   ^
+  6 warnings generated.
   RuniJ_IntroPS5.vcxproj -> D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\Prospero_Debug\PS5_Final.elf

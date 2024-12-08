@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\GameMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|solutionrelative:GameMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\RenderManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|solutionrelative:RenderManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\RenderManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|solutionrelative:RenderManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\GameMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|solutionrelative:GameMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\vex_vv.pssl||{508BC107-5A09-453F-80C1-13C64F8A3348}",
@@ -30,17 +30,17 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "RenderManager.h",
               "DocumentMoniker": "D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\RenderManager.h",
               "RelativeDocumentMoniker": "RenderManager.h",
               "ToolTip": "D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\RenderManager.h",
               "RelativeToolTip": "RenderManager.h",
-              "ViewState": "AQIAAFcAAAAAAAAAAAAcwGgAAAAKAAAA",
+              "ViewState": "AQIAADcAAAAAAAAAAIAwwFEAAAAnAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2024-09-29T19:55:58.771Z",
               "IsPinned": true,
@@ -60,26 +60,26 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "RenderManager.cpp",
               "DocumentMoniker": "D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\RenderManager.cpp",
               "RelativeDocumentMoniker": "RenderManager.cpp",
               "ToolTip": "D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\RenderManager.cpp",
               "RelativeToolTip": "RenderManager.cpp",
-              "ViewState": "AQIAAMIAAAAAAAAAAAAcwPoAAAAoAAAA",
+              "ViewState": "AQIAABkBAAAAAAAAAAD4v88AAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-09-29T18:55:00.433Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "GameMain.cpp",
               "DocumentMoniker": "D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\GameMain.cpp",
               "RelativeDocumentMoniker": "GameMain.cpp",
               "ToolTip": "D:\\Profiles\\GCCISAdmin\\source\\repos\\AJB\\IGME753_PS5_Final\\GameMain.cpp",
               "RelativeToolTip": "GameMain.cpp",
-              "ViewState": "AQIAANIAAAAAAAAAAAAAAKgBAAAEAAAA",
+              "ViewState": "AQIAANMAAAAAAAAAAIAwwOcAAAAZAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-09-29T18:37:18.98Z",
               "EditorCaption": ""
