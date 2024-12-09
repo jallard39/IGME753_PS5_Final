@@ -112,6 +112,7 @@ public:
 	Object createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);	
 	void createBasicGeometry();
 	void createRect(uint32_t numRect);
+	void createCircle(uint32_t numRect);
 	Matrix4* createViewMatrix();
 	Matrix4 creatOriginViewMatrix();
 	void updatePaddlePosition(float dx, float dy);

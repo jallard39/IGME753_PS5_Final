@@ -11,8 +11,11 @@ const uint32_t SCREEN_HEIGHT = 2160;
 float curentPos = 0.0f;
 
 const float PLAYER_START[2] = { 0.0f, 0.0f };
-const float PLAYER_SIZE = 0.1f;
+const float PLAYER_SIZE = 1.0f;
 const float PLAYER_SPEED = 0.015f;
+
+float xPlayerPos = 0.0f;
+float yPlayerPos = 0.0f;
 
 int playerDirectionX = 1;
 int playerDirectionY = 0;
@@ -328,44 +331,31 @@ int main(int argc, const char *argv[])
 		printf("## error in initialization! ##");
 	}
 	else {
+
 		RenderManager* renderManager = new RenderManager(SCREEN_WIDTH,SCREEN_HEIGHT);
 		renderManager->setClearColor(0, 0, 0, 255);
 		renderManager->init();
 
 		// Create player --> allObjects[0]
 		
-		BasicVertex ballVerts[4] =
+	/*	BasicVertex ballVerts[4] =
 		{
 			{ PLAYER_START[0] - PLAYER_SIZE / 2, PLAYER_START[1] - PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
 			{ PLAYER_START[0] + PLAYER_SIZE / 2, PLAYER_START[1] - PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
 			{ PLAYER_START[0] + PLAYER_SIZE / 2, PLAYER_START[1] + PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
 			{ PLAYER_START[0] - PLAYER_SIZE / 2, PLAYER_START[1] + PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] }
 		};
-		renderManager->createObject(ballVerts, 4, rectangleIndices, 6);
-
-		// ===== Circle Code ======
-		//BasicVertex ballVerts[SEGMENTS + 1];
-		//ballVerts[0] = { 0.0f, 0.0f, -0.25f, WHITE[0], WHITE[1], WHITE[2] }; // Center
-		//for (uint16_t i = 1; i <= SEGMENTS; ++i) {
-		//	float angle = 2.0f * M_PI * i / SEGMENTS; // Angle in radians
-		//	float x = RADIUS * cos(angle); // Radius of 0.05f for the circle
-		//	float y = RADIUS * sin(angle);
-		//	ballVerts[i] = { x, y, -0.25f, WHITE[0], WHITE[1], WHITE[2] };
-		//}
-		//uint16_t circleIndices[SEGMENTS * 3]; // Each segment contributes 3 indices to form a triangle
-		//
-		//for (int i = 0; i < SEGMENTS; ++i) {
-		//	circleIndices[i * 3] = 0;            // Center vertex index (always 0)
-		//	circleIndices[i * 3 + 1] = i + 1;    // Current vertex index (1 to SEGMENTS)
-		//	circleIndices[i * 3 + 2] = (i + 1) % SEGMENTS + 1; // Next vertex index, wraps around
-		//}
+		renderManager->createObject(ballVerts, 4, rectangleIndices, 6);*/
 
 		renderManager->createBasicGeometry();
-		renderManager->createRect(50);
+		renderManager->createCircle(1);
+		renderManager->createRect(6);
 
 		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();
-		//matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f }) * Matrix4::scale({ PLAYER_SIZE,PLAYER_SIZE,1.0f });
+		// matrices[0] is the player(circle) position
+		matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f }) * Matrix4::scale({ PLAYER_SIZE,PLAYER_SIZE,1.0f });
+		matrices[1] = origin * Matrix4::translation({ -1, 0, 0.0f }) * Matrix4::scale({ 0.5,0.5,1.0f });
 
 		// Create maze
 		createMaze(matrices, origin);
@@ -374,13 +364,16 @@ int main(int argc, const char *argv[])
 
 		bool done = false;
 
-		vector<Object>& allObjects = renderManager->GetAllObjects();
-		Object player = allObjects[0];
+		//vector<Object>& allObjects = renderManager->GetAllObjects();
+		//Object player = allObjects[0];
 		
 		
 		// loop until exit
 		while (!done) {
-
+			xPlayerPos += PLAYER_SPEED * playerDirectionX;
+			yPlayerPos += PLAYER_SPEED * playerDirectionY;
+			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::scale({ PLAYER_SIZE,PLAYER_SIZE,0 });
+			
 			// =========================================================
 			// Wall Collision Detection - AABB from bottom left corner
 			// =========================================================

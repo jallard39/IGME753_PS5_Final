@@ -201,45 +201,74 @@ Object RenderManager::createObject(BasicVertex* vertices, uint32_t numVerts, uin
 
 void RenderManager::createBasicGeometry()
 {
+	// ------- Constants --------------------------------
+	// circle
+	const uint32_t circleSegments = 12;
+	const uint32_t numCircleVerts = circleSegments + 1;
+	const uint32_t numCircleIndices = circleSegments * 3;
+	indicesPerCircle = numCircleIndices;
+
 	// rect
+	const uint32_t numRectVerts = 4;
 	const uint32_t numRectIndices = 6;
 	indicesPerRect = numRectIndices;
-	// circle
 
+	const uint32_t numVerts = numRectVerts + numCircleVerts;
 
+	// ------- Allocate Memory for vertex and index buffer -----------------
 
-	const uint32_t numVerts = 4;
-
+	// Rect and Circle will use the same vertext buffer but different index buffer
 	BasicVertex* vertices = (BasicVertex*)allocDmem({ numVerts * sizeof(BasicVertex), sce::Agc::Alignment::kBuffer });
+	uint16_t* CircleIndices = (uint16_t*)allocDmem({ numCircleIndices * sizeof(uint16_t), sce::Agc::Alignment::kBuffer });
 	uint16_t* RectIndices = (uint16_t*)allocDmem({ numRectIndices * sizeof(uint16_t), sce::Agc::Alignment::kBuffer });
+
+	// -------- Making Vertex Buffer and Index buffer -------------------
 
 	uint32_t v = 0;
 
-	//rect
+	// circle
+	vertices[v++] = { 0.0f, 0.0f, -0.25f, 1.0f, 1.0f, 1.0f }; // center
+
+	for (uint16_t i = 1; i <= circleSegments; ++i) {
+		float angle = 2.0f * M_PI * i / circleSegments; // Angle in radians
+		float x = 0.05f * cos(angle); // Radius of 0.05f for the circle
+		float y = 0.05f * sin(angle);
+		vertices[v++] = { x, y, -0.25f, 1.0f, 1.0f, 1.0f };
+	}
+
+	for (int i = 0; i < circleSegments; ++i) {
+		CircleIndices[i * 3] = 0;            // Center vertex index (always 0)
+		CircleIndices[i * 3 + 1] = i + 1;    // Current vertex index (1 to SEGMENTS)
+		CircleIndices[i * 3 + 2] = (i + 1) % circleSegments + 1; // Next vertex index, wraps around
+	}
+
+	circleIndexBuffer = CircleIndices;
+
+	// rect
 	vertices[v++] = { -0.25f, -0.25f, -0.25f, 0.25f, 1.0f, 0.25f };
 	vertices[v++] = { 0.25f, -0.25f, -0.25f, 0.25f, 1.0f, 0.9f };
 	vertices[v++] = { -0.25f, 0.25f, -0.25f, 0.9f, 1.0f, 0.25f };
 	vertices[v++] = { 0.25f, 0.25f, -0.25f, 0.9f, 1.0f, 0.9f };
 
+	// Index buffer
+	// Rect Triangle 1
+	RectIndices[0] = 0 + numCircleVerts;
+	RectIndices[1] = 1 + numCircleVerts;
+	RectIndices[2] = 2 + numCircleVerts;
+	// Rect Triangle 2
+	RectIndices[3] = 3 + numCircleVerts;
+	RectIndices[4] = 2 + numCircleVerts;
+	RectIndices[5] = 1 + numCircleVerts;
 
+	rectangleIndexBuffer = RectIndices;
+
+	// --------- Bind Vertex buffer --------------------------------------------
 	sce::Agc::Core::BufferSpec bufSpec;
-	bufSpec.initAsRegularBuffer(vertices, sizeof(BasicVertex), 4);
+	bufSpec.initAsRegularBuffer(vertices, sizeof(BasicVertex), numVerts);
 
 	SceError error = sce::Agc::Core::initialize(&vertexBuffer, &bufSpec);
 	SCE_AGC_ASSERT(error == SCE_OK);
 	sce::Agc::Core::registerResource(&vertexBuffer, "Vertex");
-
-
-	//Triangle 1
-	RectIndices[0] = 0;
-	RectIndices[1] = 1;
-	RectIndices[2] = 2;
-	//Triangle 2
-	RectIndices[3] = 3;
-	RectIndices[4] = 2;
-	RectIndices[5] = 1;
-
-	rectangleIndexBuffer = RectIndices;
 }
 
 void RenderManager::createRect(uint32_t numRect)
@@ -248,6 +277,11 @@ void RenderManager::createRect(uint32_t numRect)
 	numRectangles = numRect;
 }
 
+void RenderManager::createCircle(uint32_t numCircle)
+{
+	numObjects += numCircle;
+	numCircles = numCircle;
+}
 
 // this view matrix looks on z axis and y is up.
 Matrix4* RenderManager::createViewMatrix() {
@@ -531,12 +565,22 @@ void RenderManager::drawScene() {
 		//	}
 		//}
 
-		for (uint32_t i = 0; i < numRectangles; i++)
+		for (uint32_t i = 0; i < numCircles; i++)
 		{
 			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
 				.setBuffers(0, 1, &vertexBuffer)
 				.setBuffers(1, 1, &matBuffer)
 				.setDrawIndex(i);
+
+			ctx.drawIndex(indicesPerCircle, circleIndexBuffer);
+		}
+
+		for (uint32_t i = 0; i < numRectangles; i++)
+		{
+			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+				.setBuffers(0, 1, &vertexBuffer)
+				.setBuffers(1, 1, &matBuffer)
+				.setDrawIndex(i + numCircles);
 
 			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
 		}
