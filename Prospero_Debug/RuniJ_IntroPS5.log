@@ -1,16 +1,2 @@
-﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Platforms\Prospero\Prospero.CppBuild.targets(100,5): warning MSB8028: The intermediate directory (Prospero_Debug\) contains files shared from another project (BreakOut.vcxproj, RuniJ_IntroPS5.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  GameMain.cpp
-D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(285,14): warning : unused variable 'WALL_WIDTH' [-Wunused-variable]
-    285 |         const float WALL_WIDTH = 0.1f;
-        |                     ^~~~~~~~~~
-D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(286,12): warning : unused variable 'MAZE_WIDTH' [-Wunused-variable]
-    286 |         const int MAZE_WIDTH = 30;
-        |                   ^~~~~~~~~~
-D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(287,12): warning : unused variable 'MAZE_HEIGHT' [-Wunused-variable]
-    287 |         const int MAZE_HEIGHT = 15;
-        |                   ^~~~~~~~~~~
-D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\GameMain.cpp(234,13): warning : unused variable 'RADIUS' [-Wunused-const-variable]
-    234 | const float RADIUS = 0.05f;
-        |             ^~~~~~
-  4 warnings generated.
-  RuniJ_IntroPS5.vcxproj -> D:\Profiles\GCCISAdmin\source\repos\AJB\IGME753_PS5_Final\Prospero_Debug\PS5_Final.elf
+﻿  GameMain.cpp
+  RuniJ_IntroPS5.vcxproj -> D:\IGME753_PS5_Final\Prospero_Debug\PS5_Final.elf

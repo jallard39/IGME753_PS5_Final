@@ -8,10 +8,16 @@
 const uint32_t SCREEN_WIDTH = 3840;
 const uint32_t SCREEN_HEIGHT = 2160;
 
-float curentPos = 0.0f;
+// indices 
+int I_PLAYER = 0;
+int I_MAZE = 1;
+
+const float GRID_SIZE = 0.1f;
+const int MAZE_WIDTH = 42;
+const int MAZE_HEIGHT = 22;
+int num_walls = 40 + 40 + 44;
 
 const float PLAYER_START[2] = { 0.0f, 0.0f };
-const float PLAYER_SIZE = 1.0f;
 const float PLAYER_SPEED = 0.015f;
 
 float xPlayerPos = 0.0f;
@@ -223,88 +229,64 @@ bool handleUserEvents(RenderManager* renderManager) {
 }
 
 
-const float WHITE[3] = { 1.0f, 1.0f, 1.0f };
-const float RED[3] = { 1.0f, 0.0f, 0.0f };
-const float GREEN[3] = { 0.0f, 1.0f, 0.0f };
-const float BLUE[3] = { 0.0f, 0.0f, 1.0f };
-const float YELLOW[3] = { 1.0f, 1.0f, 0.0f };
-const float* COLORS[] = { RED, GREEN, BLUE, YELLOW, WHITE };
-
-uint16_t rectangleIndices[6] = { 0, 1, 2, 0, 2, 3 };
-const float RADIUS = 0.05f;
-//const uint16_t SEGMENTS = 12;
-
 void createMaze(Matrix4* matrices, Matrix4 origin)
 {
-	// Left wall
-	matrices[2] = origin * Matrix4::translation({ -2.2, 0, 0.0f }) * Matrix4::scale({ 0.2,5,1.0f });
-	// Right wall
-	matrices[3] = origin * Matrix4::translation({ 2.2, 0, 0.0f }) * Matrix4::scale({ 0.2,5,1.0f });
-	// Top wall
-	matrices[4] = origin * Matrix4::translation({ 0, 1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
-	// Bottom wall
-	matrices[5] = origin * Matrix4::translation({ 0, -1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
+	//// Left wall
+	//matrices[m++] = origin * Matrix4::translation({ -2.2, 0, 0.0f }) * Matrix4::scale({ 0.2,5,1.0f });
+	//// Right wall
+	//matrices[m++] = origin * Matrix4::translation({ 2.2, 0, 0.0f }) * Matrix4::scale({ 0.2,5,1.0f });
+	//// Top wall
+	//matrices[m++] = origin * Matrix4::translation({ 0, 1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
+	//// Bottom wall
+	//matrices[m++] = origin * Matrix4::translation({ 0, -1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
 
-	//// Create top wall
-	//BasicVertex wallVerts[4] =
-	//{
-	//	{ -2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2]},
-	//	{ 2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] },
-	//	{ 2.0f, 1.0f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] },
-	//	{ -2.0f, 1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] }
-	//};
-	//walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
-	//
-
-
-	//// Create bottom wall
-	//wallVerts[0] = { -2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	//wallVerts[1] = { 2.0f, -1.0f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	//wallVerts[2] = { 2.0f, -0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
-	//wallVerts[3] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	//walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
-
-	//// Create left wall
-	//wallVerts[0] = { -2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	//wallVerts[1] = { -1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	//wallVerts[2] = { -1.9f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
-	//wallVerts[3] = { -2.0f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	//walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
-
-	//// Create right wall
-	//wallVerts[0] = { 1.9f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	//wallVerts[1] = { 2.0f, -0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	//wallVerts[2] = { 2.0f, 0.9f, -0.25f,  BLUE[0], BLUE[1], BLUE[2] };
-	//wallVerts[3] = { 1.9f, 0.9f, -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-	//walls.push_back(renderManager->createObject(wallVerts, 4, rectangleIndices, 6));
-
-	// Create walls with a dynamic grid system - THROWS AN ERROR <<<<<<<
-	// Some kind of memory problem, can't handle dimensions this large. 
-	// Width = 20, Height = 2 works but Width = 25, Height = 2 doesn't
-
-	const float WALL_WIDTH = 0.1f;
-	const int MAZE_WIDTH = 30;
-	const int MAZE_HEIGHT = 15;
-
-	/*int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] =
+	int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] =
 	{
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+		{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1},
+
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+				
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+				
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+				
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+
+		{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1}
 	};
 
+	int m = I_MAZE;
+	float startX = 0 - (MAZE_WIDTH / 2) * GRID_SIZE;
+	float startY = (MAZE_HEIGHT / 2) * GRID_SIZE;
+
+	for (int i = 0; i < MAZE_WIDTH; i++)
+	{
+		for (int j = 0; j < MAZE_HEIGHT; j++)
+		{
+			if (mazeTemplate[j][i] == 1) 
+			{
+				matrices[m++] = origin * Matrix4::translation({ startX + (i * GRID_SIZE), startY - (j * GRID_SIZE), 0.0f});
+			}
+		}
+	}
+
+	/*
 	float startX = 0 - (MAZE_WIDTH / 2) * WALL_WIDTH;
 	float startY = (MAZE_HEIGHT / 2) * WALL_WIDTH;
 
@@ -336,26 +318,16 @@ int main(int argc, const char *argv[])
 		renderManager->setClearColor(0, 0, 0, 255);
 		renderManager->init();
 
-		// Create player --> allObjects[0]
-		
-	/*	BasicVertex ballVerts[4] =
-		{
-			{ PLAYER_START[0] - PLAYER_SIZE / 2, PLAYER_START[1] - PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
-			{ PLAYER_START[0] + PLAYER_SIZE / 2, PLAYER_START[1] - PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
-			{ PLAYER_START[0] + PLAYER_SIZE / 2, PLAYER_START[1] + PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] },
-			{ PLAYER_START[0] - PLAYER_SIZE / 2, PLAYER_START[1] + PLAYER_SIZE / 2, -0.25f, WHITE[0], WHITE[1], WHITE[2] }
-		};
-		renderManager->createObject(ballVerts, 4, rectangleIndices, 6);*/
-
-		renderManager->createBasicGeometry();
-		renderManager->createCircle(1);
-		renderManager->createRect(6);
+		// Init geometry
+		renderManager->createBasicGeometry(GRID_SIZE);
+		renderManager->createRect(num_walls + 1);
 
 		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();
-		// matrices[0] is the player(circle) position
-		matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f }) * Matrix4::scale({ PLAYER_SIZE,PLAYER_SIZE,1.0f });
-		matrices[1] = origin * Matrix4::translation({ -1, 0, 0.0f }) * Matrix4::scale({ 0.5,0.5,1.0f });
+
+		// matrices[0] is the player position
+		matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f });
+		//matrices[1] = origin * Matrix4::translation({ -1, 0, 0.0f }) * Matrix4::scale({ 0.5,0.5,1.0f });
 
 		// Create maze
 		createMaze(matrices, origin);
@@ -372,7 +344,7 @@ int main(int argc, const char *argv[])
 		while (!done) {
 			xPlayerPos += PLAYER_SPEED * playerDirectionX;
 			yPlayerPos += PLAYER_SPEED * playerDirectionY;
-			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::scale({ PLAYER_SIZE,PLAYER_SIZE,0 });
+			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 });
 			
 			// =========================================================
 			// Wall Collision Detection - AABB from bottom left corner

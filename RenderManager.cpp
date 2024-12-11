@@ -199,7 +199,7 @@ Object RenderManager::createObject(BasicVertex* vertices, uint32_t numVerts, uin
 
 
 
-void RenderManager::createBasicGeometry()
+void RenderManager::createBasicGeometry(float gridSize)
 {
 	// ------- Constants --------------------------------
 	// circle
@@ -231,8 +231,8 @@ void RenderManager::createBasicGeometry()
 
 	for (uint16_t i = 1; i <= circleSegments; ++i) {
 		float angle = 2.0f * M_PI * i / circleSegments; // Angle in radians
-		float x = 0.05f * cos(angle); // Radius of 0.05f for the circle
-		float y = 0.05f * sin(angle);
+		float x = (gridSize/2) * cos(angle); // Radius of gridSize/2 for the circle
+		float y = (gridSize/2) * sin(angle);
 		vertices[v++] = { x, y, -0.25f, 1.0f, 1.0f, 1.0f };
 	}
 
@@ -245,10 +245,10 @@ void RenderManager::createBasicGeometry()
 	circleIndexBuffer = CircleIndices;
 
 	// rect
-	vertices[v++] = { -0.25f, -0.25f, -0.25f, 0.25f, 1.0f, 0.25f };
-	vertices[v++] = { 0.25f, -0.25f, -0.25f, 0.25f, 1.0f, 0.9f };
-	vertices[v++] = { -0.25f, 0.25f, -0.25f, 0.9f, 1.0f, 0.25f };
-	vertices[v++] = { 0.25f, 0.25f, -0.25f, 0.9f, 1.0f, 0.9f };
+	vertices[v++] = { -1 * gridSize/2, -1 * gridSize/2, -0.25f, 0.25f, 1.0f, 0.25f };
+	vertices[v++] = { gridSize/2, -1 * gridSize/2, -0.25f, 0.25f, 1.0f, 0.9f };
+	vertices[v++] = { -1 * gridSize/2, gridSize/2, -0.25f, 0.9f, 1.0f, 0.25f };
+	vertices[v++] = { gridSize/2, gridSize/2, -0.25f, 0.9f, 1.0f, 0.9f };
 
 	// Index buffer
 	// Rect Triangle 1

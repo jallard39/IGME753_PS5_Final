@@ -110,7 +110,7 @@ public:
 	void setClearColor(uint32_t r, uint32_t g, uint32_t b, uint32_t a) { 
 		rtClearValue = sce::Agc::Core::Encoder::raw(r, g, b, a); }
 	Object createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);	
-	void createBasicGeometry();
+	void createBasicGeometry(float gridSize);
 	void createRect(uint32_t numRect);
 	void createCircle(uint32_t numRect);
 	Matrix4* createViewMatrix();

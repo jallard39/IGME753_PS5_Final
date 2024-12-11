@@ -48,6 +48,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Prospero'">
     <LibraryPath>$(SCE_PROSPERO_SDK_DIR)\target\lib</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Prospero'">
+    <LibraryPath>$(SCE_PROSPERO_SDK_DIR)\target\lib</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Prospero'">
     <ClCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions);</PreprocessorDefinitions>
@@ -55,7 +58,7 @@
     </ClCompile>
     <Link>
       <Addressing>Aslr</Addressing>
-      <AdditionalDependencies>%(AdditionalDependencies)-lScePad_stub_weak;-lSceUserService_stub_weak;-lSceAgcDriver_stub_weak;-lSceAgc_stub_weak;-lSceVideoOut_stub_weak;-lSceAgc_debug_nosubmission;-lSceAgcCore_debug_nosubmission;-lSceAgcGpuAddress_debug_nosubmission;-lSceMt19937</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);-lScePad_stub_weak;-lSceUserService_stub_weak;-lSceAgcDriver_stub_weak;-lSceAgc_stub_weak;-lSceVideoOut_stub_weak;-lSceAgc_debug_nosubmission;-lSceAgcCore_debug_nosubmission;-lSceAgcGpuAddress_debug_nosubmission;-lSceMt19937</AdditionalDependencies>
     </Link>
     <WavePsslc>
       <Embed>true</Embed>
@@ -66,6 +69,12 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <OptimizationLevel>Level2</OptimizationLevel>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies);-lScePad_stub_weak;-lSceUserService_stub_weak;-lSceAgcDriver_stub_weak;-lSceAgc_stub_weak;-lSceVideoOut_stub_weak;-lSceAgc_debug_nosubmission;-lSceAgcCore_debug_nosubmission;-lSceAgcGpuAddress_debug_nosubmission;-lSceMt19937</AdditionalDependencies>
+    </Link>
+    <WavePsslc>
+      <Embed>true</Embed>
+    </WavePsslc>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GameMain.cpp" />
