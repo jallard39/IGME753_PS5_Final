@@ -3,7 +3,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Prospero'">
     <LocalDebuggerTarget>igmps5prokit</LocalDebuggerTarget>
     <DebuggerFlavor>ProsperoDebugger</DebuggerFlavor>
-    <LocalDebuggerCommand>D:\IGME753_PS5_Final\Prospero_Debug\PS5_Final.elf</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Prospero'">
     <LocalDebuggerTarget>igmps5prokit</LocalDebuggerTarget>
