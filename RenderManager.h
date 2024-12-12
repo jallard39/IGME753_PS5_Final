@@ -8,9 +8,18 @@
 #include <stdio.h>
 #include <vectormath.h>
 #include <vector>
+#include <agc_texture_tool/gnf.h>
 
 using namespace std;
 using namespace sce::Vectormath::Scalar::Aos;
+
+typedef sce::Gnf::Header              GnfHeader;
+typedef sce::Gnf::Contents            GnfContents;
+typedef sce::TextureTool::Agc::TSharp TSharp;
+// This is a magic number set at the start of every GNF file. It can be used to ensure
+// that the file we're loading is a valid GNF file.
+#define GNF_MAGIC 0x20464E47 
+#define PATH_PREFIX "/app0/data/"
 
 #define PI 3.14159
 
@@ -20,15 +29,40 @@ using namespace sce::Vectormath::Scalar::Aos;
 #define DISPLAY_HEIGHT				2160
 #define BUFFER_NUMBER				2
 
+//// Data structure for basic geometry
+//typedef struct BasicVertex {
+//	float pos[3];
+//	float color[3];
+//
+//	BasicVertex() { pos[0] = 0.0f; pos[1] = 0.0f; pos[2] = 0.0f; color[0] = 1.0f; color[1] = 1.0f; color[2] = 1.0f; }
+//	BasicVertex(float x, float y, float z) { pos[0] = x; pos[1] = y; pos[2] = z; color[0] = 1.0f; color[1] = 1.0f; color[2] = 1.0f; }
+//	BasicVertex(float x, float y, float z, float r, float g, float b) {
+//		pos[0] = x; pos[1] = y; pos[2] = z; color[0] = r; color[1] = g; color[2] = b;
+//	}
+//	BasicVertex operator+(const BasicVertex& rhs) {
+//		return BasicVertex(pos[0] + rhs.pos[0], pos[1] + rhs.pos[1], pos[2] + rhs.pos[2]);
+//	}
+//	BasicVertex operator+(const float& rhs) {
+//		return BasicVertex(pos[1] + rhs, pos[1] + rhs, pos[2] += rhs);
+//	}
+//	BasicVertex operator*(const BasicVertex& rhs) {
+//		return BasicVertex(pos[0] * rhs.pos[0], pos[1] * rhs.pos[1], pos[2] *= rhs.pos[2]);
+//	}
+//	BasicVertex operator*(const float& rhs) {
+//		return BasicVertex(pos[0] * rhs, pos[1] * rhs, pos[2] * rhs);
+//	}
+//
+//} BasicVertex;
+
 // Data structure for basic geometry
 typedef struct BasicVertex {
 	float pos[3];
-	float color[3];
+	float uvx, uvy;
 
-	BasicVertex() { pos[0] = 0.0f; pos[1] = 0.0f; pos[2] = 0.0f; color[0] = 1.0f; color[1] = 1.0f; color[2] = 1.0f; }
-	BasicVertex(float x, float y, float z) { pos[0] = x; pos[1] = y; pos[2] = z; color[0] = 1.0f; color[1] = 1.0f; color[2] = 1.0f; }
-	BasicVertex(float x, float y, float z, float r, float g, float b) {
-		pos[0] = x; pos[1] = y; pos[2] = z; color[0] = r; color[1] = g; color[2] = b;
+	BasicVertex() { pos[0] = 0.0f; pos[1] = 0.0f; pos[2] = 0.0f; uvx = 1.0f; uvy = 1.0f; }
+	BasicVertex(float x, float y, float z) { pos[0] = x; pos[1] = y; pos[2] = z; uvx = 1.0f; uvy = 1.0f; }
+	BasicVertex(float x, float y, float z, float uvx, float uvy) {
+		pos[0] = x; pos[1] = y; pos[2] = z; this->uvx = uvx; this->uvy = uvy;
 	}
 	BasicVertex operator+(const BasicVertex& rhs) {
 		return BasicVertex(pos[0] + rhs.pos[0], pos[1] + rhs.pos[1], pos[2] + rhs.pos[2]);
@@ -56,6 +90,20 @@ struct Object
 	bool isActive = true;
 };
 
+// The Material struct will store the texture and sampler for each object
+struct Material
+{
+	sce::Agc::Core::Texture texture;
+	sce::Agc::Core::Sampler sampler;
+};
+
+enum ObjectType {
+	Player,
+	Wall,
+	Ghost,
+};
+
+
 // Base class for all games that need a rendering loop
 class RenderManager
 {
@@ -64,17 +112,24 @@ private:
 	int windowY;
 	uint32_t backBufferIndex = 0;
 	uint64_t frameNumber = 0;
-	uint32_t numObjects = 1;
-	uint32_t indicesPerObject;
+	uint32_t numObjects = 0;
+
 	sce::Agc::Core::Buffer vertexBuffer;
-	uint16_t* indexBuffer = nullptr;
+
 	sce::Agc::Core::Buffer matBuffer;
 	vector<Object> allObjects;
+
+	// Texture info
+	std::vector<Material> mats;
 
 	// Rectangle Info
 	uint32_t numRectangles = 0;
 	uint32_t indicesPerRect;
 	uint16_t* rectangleIndexBuffer = nullptr;
+
+	// Rec objects under rectangle
+	uint32_t numWall = 0;
+	uint32_t numPlayer = 0;
 
 	// Circle Info
 	uint32_t numCircles = 0;
@@ -97,8 +152,6 @@ private:
 	sce::Agc::CxPrimitiveSetup primSetup;
 	sce::Agc::CxDepthStencilControl depthStencilControl;
 	sce::Agc::Shader* gs, * ps;
-	
-	void updateObjectPosition(int i, float dx, float dy);
 
 public:
 	RenderManager();
@@ -111,11 +164,11 @@ public:
 		rtClearValue = sce::Agc::Core::Encoder::raw(r, g, b, a); }
 	Object createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);	
 	void createBasicGeometry(float gridSize);
-	void createRect(uint32_t numRect);
+	void createRect(uint32_t numRect, ObjectType objType);
 	void createCircle(uint32_t numRect);
 	Matrix4* createViewMatrix();
 	Matrix4 creatOriginViewMatrix();
-	void updatePaddlePosition(float dx, float dy);
-	void updateBallPosition(float dx, float dy);
 	vector<Object>& GetAllObjects();
+
+	void LoadTextures();
 }; 

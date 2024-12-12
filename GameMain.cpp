@@ -320,7 +320,8 @@ int main(int argc, const char *argv[])
 
 		// Init geometry
 		renderManager->createBasicGeometry(GRID_SIZE);
-		renderManager->createRect(num_walls + 1);
+		renderManager->createRect(1, ObjectType::Player);
+		renderManager->createRect(num_walls, ObjectType::Wall); // The first one is the player, the second one is used to test with texture
 
 		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();

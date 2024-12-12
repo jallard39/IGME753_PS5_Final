@@ -47,6 +47,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Prospero'">
     <LibraryPath>$(SCE_PROSPERO_SDK_DIR)\target\lib</LibraryPath>
+    <IncludePath>$(SCE_PROSPERO_SDK_DIR)\target\‌‌​‌‌​‍‌‌‌​​​‍‌‌​​​‌‍‌‌​​​‌‌‍‌‌​​​‌‌‍‌‌‌​​‌‍‌‌​​‌‌‍‌‌​​​‌‌‍‌​‌‌​‌‍‌‌​‌‌​‍‌‌​‌​​‍‌‌​‌​​‍‌‌‌​​‌‍‌​‌‌​‌‍‌‌​‌​​‍‌‌​​‌​‌‍‌‌​​​​‍‌‌​​‌‌‍‌​‌‌​‌‍‌‌​​​​‌‍‌‌​‌‌​‍‌‌​​​‌‍‌‌​​​‌​‍‌​‌‌​‌‍‌‌​‌‌‌‍‌‌​​‌​​‍‌‌​​‌​‍‌‌​‌‌​‍‌‌‌​​‌‍‌‌​‌‌​‍‌‌​​​‌‌‍‌‌​​​​‌‍‌‌​‌​​‍‌‌​​​‌​‍‌‌‌​​‌‍‌‌​‌‌​include_common</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Prospero'">
     <LibraryPath>$(SCE_PROSPERO_SDK_DIR)\target\lib</LibraryPath>
@@ -58,11 +59,15 @@
     </ClCompile>
     <Link>
       <Addressing>Aslr</Addressing>
-      <AdditionalDependencies>%(AdditionalDependencies);-lScePad_stub_weak;-lSceUserService_stub_weak;-lSceAgcDriver_stub_weak;-lSceAgc_stub_weak;-lSceVideoOut_stub_weak;-lSceAgc_debug_nosubmission;-lSceAgcCore_debug_nosubmission;-lSceAgcGpuAddress_debug_nosubmission;-lSceMt19937</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);-lScePad_stub_weak;-lSceUserService_stub_weak;-lSceAgcDriver_stub_weak;-lSceAgc_stub_weak;-lSceVideoOut_stub_weak;-lSceAgc_debug_nosubmission;-lSceAgcCore_debug_nosubmission;-lSceAgcGpuAddress_debug_nosubmission;-lSceMt19937;libSceAgcTextureTool_debug.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SCE_PROSPERO_SDK_DIR)\host_tools\lib</AdditionalLibraryDirectories>
     </Link>
     <WavePsslc>
       <Embed>true</Embed>
     </WavePsslc>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Prospero'">
     <ClCompile>

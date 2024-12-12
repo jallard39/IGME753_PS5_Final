@@ -7,12 +7,18 @@ PlayStation(R)5 Programmer Tool Runtime Library Release 8.00.00.41-00.00.00.0.1
 struct V2P
 {
 	float4 pos : S_POSITION;
-	float3 color : COLOR;
+	float2 texcoord : TEXCOORD0;
 };
+
+// Here, we're just declaring the shader input constants globally. This is to show 
+// that constant buffers are just one of many ways to declare shader inputs in PSSL.
+Texture2D<float4> texture : register(t0);
+SamplerState      sampler : register(s0);
 
 [CxxSymbol("ShaderText::ps")]
 float4 main(V2P input) : S_TARGET_OUTPUT0
 {	
-	return float4(input.color, 1);
+	return texture.Sample(sampler, input.texcoord);
+	//return float4(input.texcoord, 0.0, 1.0); // test uv
 }
 

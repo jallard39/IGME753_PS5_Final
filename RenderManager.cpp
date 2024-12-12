@@ -11,6 +11,7 @@ namespace ShaderText
 	extern char  gs_header[];
 	extern const char  gs_text[];
 }
+
 /////////////////////////////////
 // Memory allocators
 /////////////////////////////////
@@ -227,13 +228,13 @@ void RenderManager::createBasicGeometry(float gridSize)
 	uint32_t v = 0;
 
 	// circle
-	vertices[v++] = { 0.0f, 0.0f, -0.25f, 1.0f, 1.0f, 1.0f }; // center
+	vertices[v++] = { 0.0f, 0.0f, -0.25f, 1.0f, 1.0f}; // center
 
 	for (uint16_t i = 1; i <= circleSegments; ++i) {
 		float angle = 2.0f * M_PI * i / circleSegments; // Angle in radians
 		float x = (gridSize/2) * cos(angle); // Radius of gridSize/2 for the circle
 		float y = (gridSize/2) * sin(angle);
-		vertices[v++] = { x, y, -0.25f, 1.0f, 1.0f, 1.0f };
+		vertices[v++] = { x, y, -0.25f, 0.0f, 0.0f};
 	}
 
 	for (int i = 0; i < circleSegments; ++i) {
@@ -244,11 +245,11 @@ void RenderManager::createBasicGeometry(float gridSize)
 
 	circleIndexBuffer = CircleIndices;
 
-	// rect
-	vertices[v++] = { -1 * gridSize/2, -1 * gridSize/2, -0.25f, 0.25f, 1.0f, 0.25f };
-	vertices[v++] = { gridSize/2, -1 * gridSize/2, -0.25f, 0.25f, 1.0f, 0.9f };
-	vertices[v++] = { -1 * gridSize/2, gridSize/2, -0.25f, 0.9f, 1.0f, 0.25f };
-	vertices[v++] = { gridSize/2, gridSize/2, -0.25f, 0.9f, 1.0f, 0.9f };
+	// rect                                                    // uv
+	vertices[v++] = { -1 * gridSize/2, -1 * gridSize/2, -0.25f, 0.f, 1.f};
+	vertices[v++] = { gridSize/2, -1 * gridSize/2,		-0.25f,	1.f, 1.f };
+	vertices[v++] = { -1 * gridSize/2, gridSize/2,		-0.25f,	0.f, 0.f};
+	vertices[v++] = { gridSize/2, gridSize/2,			-0.25f,	1.f, 0.f };
 
 	// Index buffer
 	// Rect Triangle 1
@@ -271,10 +272,23 @@ void RenderManager::createBasicGeometry(float gridSize)
 	sce::Agc::Core::registerResource(&vertexBuffer, "Vertex");
 }
 
-void RenderManager::createRect(uint32_t numRect)
+void RenderManager::createRect(uint32_t numRect, ObjectType objType)
 {
 	numObjects += numRect;
-	numRectangles = numRect;
+	//numRectangles = numRect;
+	switch (objType)
+	{
+	case Player:
+		numPlayer += numRect;
+		break;
+	case Wall:
+		numWall += numRect;
+		break;
+	case Ghost:
+		break;
+	default:
+		break;
+	}
 }
 
 void RenderManager::createCircle(uint32_t numCircle)
@@ -322,26 +336,106 @@ Matrix4 RenderManager::creatOriginViewMatrix() {
 	return origin;
 }
 
-void RenderManager::updatePaddlePosition(float dx, float dy)
-{
-	updateObjectPosition(1, dx, dy);
-}
-
-void RenderManager::updateBallPosition(float dx, float dy)
-{
-	updateObjectPosition(0, dx, dy);
-}
-
 vector<Object>& RenderManager::GetAllObjects()
 {
 	return allObjects;
 }
 
-void RenderManager::updateObjectPosition(int i, float dx, float dy)
+void RenderManager::LoadTextures()
 {
-	for (int j = 0; j < allObjects[i].vertexCount; ++j) {
-		allObjects[i].vertices[j].pos[0] += dx; // Update X position
-		allObjects[i].vertices[j].pos[1] += dy; // Update Y position
+	// These are the paths for all the assets we want to load
+	const char* imagePaths[] = {
+		PATH_PREFIX "pacman.gnf",
+		PATH_PREFIX "wall.gnf",
+		PATH_PREFIX "ghost.gnf",
+	};
+	uint32_t kNumTextures = sizeof(imagePaths) / sizeof(imagePaths[0]);
+
+	for (uint32_t tex = 0; tex < kNumTextures; ++tex)
+	{
+		// This loop aims to read in a Gnf texture, and pack it into a material object 
+		//RenderObject newObject;
+		Material newMat;
+
+		FILE* imageFile = fopen(imagePaths[tex], "rb");
+		SCE_AGC_ASSERT(imageFile != nullptr);
+
+		// Get the size of image file
+		fseek(imageFile, 0, SEEK_END);
+		size_t fileSize = ftell(imageFile);
+		rewind(imageFile);
+
+		/* The texture data in a GNF file is already aligned so all we need to do is load
+		*  the entire file into memory. This will work as long as the buffer we allocate is
+		*  aligned to 64K, which our allocDmem function already does.*/
+		uint8_t* imageData = allocDmem({ uint32_t(fileSize), 0 });
+		fread(imageData, fileSize, 1, imageFile);
+		fclose(imageFile);
+
+		/** There are differences between the binary contents of GNFv5 and GNFv4 files. We first
+		* need to parse the top of the file into the header to ensure the GNF magic number is
+		* correct. After that we can read the first byte after the header to tell us the version
+		* number of the GNF file
+		*
+		* Since we then know that there is only one texture per file we can read the contents
+		* directly into a texture handle*/
+		const GnfHeader* imageHeader = reinterpret_cast<const GnfHeader*>(imageData);
+		SCE_AGC_ASSERT(imageHeader->m_magicNumber == GNF_MAGIC);
+
+		// Get the first byte after the header to determine the version  
+		uint8_t gnfVersion = imageData[sizeof(GnfHeader)];
+		printf("Image %s has Gnf Version %i\n", imagePaths[tex], gnfVersion);
+		if (gnfVersion >= 5)
+		{
+			// Next we can get the contents specific to a GNFv5 file. This allows us to do further version checking
+			const sce::Gnf::ContentsV5* content = reinterpret_cast<const sce::Gnf::ContentsV5*>(imageData + sizeof(GnfHeader));
+
+			// Check that the content we've recieved has the correct version, alignment and at least one texture
+			SCE_AGC_ASSERT(content->m_version == gnfVersion);
+			SCE_AGC_ASSERT(content->m_alignment <= exp2(31.0));
+			SCE_AGC_ASSERT(content->m_numTextures);
+
+			// Fetch the texture handle from the bytes directly after the GNFv5 content
+			const sce::Agc::Core::Texture* texture = reinterpret_cast<const sce::Agc::Core::Texture*>((uint8_t*)content + sizeof(sce::Gnf::ContentsV5));
+
+			// Copy the texture handle into the new object while storing the address of the textures memory
+			memcpy(&newMat.texture, texture, sizeof(sce::Agc::Core::Texture));
+			newMat.texture.setDataAddress(imageData + sizeof(GnfHeader) + imageHeader->m_contentsSize);
+		}
+		else
+		{
+			// If we end up in this branch then the GNF version detected was 4 or lower
+			const GnfContents* contents = reinterpret_cast<const GnfContents*>(imageData + sizeof(GnfHeader));
+			memcpy(&newMat.texture, contents->m_tSharps, sizeof(TSharp));
+			newMat.texture.setDataAddress(imageData + sizeof(GnfHeader) + imageHeader->m_contentsSize);
+		}
+
+		// Then we initialize the sampler
+		newMat.sampler.init()
+			.setWrapMode(sce::Agc::Core::Sampler::WrapMode::kWrap)
+			// We set the XY filtering to bilinear for all textures
+			.setXyFilterMode(sce::Agc::Core::Sampler::FilterMode::kBilinear);
+	
+		/* If the texture has multiple mip levels, then we also set the mip filtering
+		*  mode to linear. This smoothes out the transition between mip levels, but is
+		*  naturally a little more expensive.
+		*/
+		//if (newMat.texture.getNumMipLevels() > 1)
+		//	newMat.sampler.setMipFilterMode(
+		//		sce::Agc::Core::Sampler::MipFilterMode::kLinear);
+
+		//// For texture arrays create an instance buffer
+		//if (newMat.texture.getType() == sce::Agc::Core::Texture::Type::k2dArray)
+		//{
+		//	newObject.instanceBuffer = instanceBuffers.size();
+		//	InstanceBuffer newInstanceBuffer;
+		//	newInstanceBuffer.count = 32;
+		//	initInstanceBuffer(newInstanceBuffer);
+		//	instanceBuffers.push_back(newInstanceBuffer);
+		//}
+		
+		// Push the material to our list
+		mats.push_back(newMat);
 	}
 }
 
@@ -459,7 +553,10 @@ void RenderManager::init()
 	latencyControl.control = SCE_VIDEO_OUT_LATENCY_CONTROL_WAIT_BY_FLIP_QUEUE_NUM; // This allows us to simply pass the frame number as the flipArg.
 	latencyControl.targetNum = 1; // Allow for the CPU to get one frame ahead. This means the duration of CPU + GPU processing should be less than one frame to hold framerate. In your game application, you probably want this to be 2 or 3.
 	latencyControl.extraUsec = 0; // For simplicity we're assuming the CPU + GPU processing of each frame takes the full frame time. You will want to adjust this in your game application to reduce latency.
+
+	LoadTextures();
 }
+
 
 void RenderManager::drawScene() {
 	
@@ -575,15 +672,48 @@ void RenderManager::drawScene() {
 			ctx.drawIndex(indicesPerCircle, circleIndexBuffer);
 		}
 
-		for (uint32_t i = 0; i < numRectangles; i++)
+		//for (uint32_t i = 0; i < numRectangles; i++)
+		//{
+		//	ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+		//		.setBuffers(0, 1, &vertexBuffer)
+		//		.setBuffers(1, 1, &matBuffer)
+		//		.setDrawIndex(i + numCircles);
+
+		//	ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+		//		.setTextures(0, 1, &mats[0].texture)
+		//		.setSamplers(0, 1, &mats[0].sampler);
+
+		//	ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+		//}
+
+		// Player Draw
+		ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+			.setBuffers(0, 1, &vertexBuffer)
+			.setBuffers(1, 1, &matBuffer)
+			.setDrawIndex(numCircles);
+
+		ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+			.setTextures(0, 1, &mats[0].texture)
+			.setSamplers(0, 1, &mats[0].sampler);
+
+		ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+
+
+		// Wall Draw
+		for (uint32_t i = 0; i < numWall; i++)
 		{
 			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
 				.setBuffers(0, 1, &vertexBuffer)
 				.setBuffers(1, 1, &matBuffer)
-				.setDrawIndex(i + numCircles);
+				.setDrawIndex(i + numCircles + 1); // +1 player
+
+			ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+				.setTextures(0, 1, &mats[1].texture)
+				.setSamplers(0, 1, &mats[1].sampler);
 
 			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
 		}
+
 
 		// Submit a flip via the GPU.
 		// Note: on Prospero, RenderTargets write into the GL2 cache, but the scan-out
