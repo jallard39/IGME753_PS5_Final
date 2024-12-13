@@ -7,16 +7,19 @@
       "RelativeMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|solutionrelative:GameMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|C:\\PROGRAM FILES (X86)\\SCE\\PROSPERO SDKS\\9.000\\TARGET\\INCLUDE\\UTILITY||{3B902123-F8A7-4915-9F01-361F908088D0}|"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\RenderManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|solutionrelative:RenderManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\RenderManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|solutionrelative:RenderManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\vex_vv.pssl||{508BC107-5A09-453F-80C1-13C64F8A3348}",
       "RelativeMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|solutionrelative:vex_vv.pssl||{508BC107-5A09-453F-80C1-13C64F8A3348}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\RenderManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|solutionrelative:RenderManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9E6DE7BB-BE5F-4434-98E4-ADDC65F95DE8}|RuniJ_IntroPS5.vcxproj|D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\pix_p.pssl||{508BC107-5A09-453F-80C1-13C64F8A3348}",
@@ -30,7 +33,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -38,7 +41,18 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
+              "Title": "utility",
+              "DocumentMoniker": "C:\\Program Files (x86)\\SCE\\Prospero SDKs\\9.000\\target\\include\\utility",
+              "ToolTip": "C:\\Program Files (x86)\\SCE\\Prospero SDKs\\9.000\\target\\include\\utility",
+              "ViewState": "AQIAAHcBAAAAAAAAAAArwIYBAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-12-13T15:33:49.198Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "RenderManager.h",
               "DocumentMoniker": "D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\RenderManager.h",
               "RelativeDocumentMoniker": "RenderManager.h",
@@ -51,13 +65,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "RenderManager.cpp",
               "DocumentMoniker": "D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\RenderManager.cpp",
               "RelativeDocumentMoniker": "RenderManager.cpp",
               "ToolTip": "D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\RenderManager.cpp",
               "RelativeToolTip": "RenderManager.cpp",
-              "ViewState": "AQIAAMICAAAAAAAAAAAAANYCAAAeAAAA",
+              "ViewState": "AQIAAMICAAAAAAAAAAAAANUCAAAoAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-09-29T18:55:00.433Z",
               "EditorCaption": ""
@@ -70,7 +84,7 @@
               "RelativeDocumentMoniker": "GameMain.cpp",
               "ToolTip": "D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\GameMain.cpp",
               "RelativeToolTip": "GameMain.cpp",
-              "ViewState": "AQIAANsBAAAAAAAAAAAqwP0BAAADAAAA",
+              "ViewState": "AQIAAFMBAAAAAAAAAAAAAMgBAAA7AAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2024-09-29T18:37:18.98Z",
               "EditorCaption": ""
@@ -90,7 +104,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "pix_p.pssl",
               "DocumentMoniker": "D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\pix_p.pssl",
               "RelativeDocumentMoniker": "pix_p.pssl",

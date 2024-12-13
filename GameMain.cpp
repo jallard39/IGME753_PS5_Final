@@ -3,6 +3,7 @@
 #include <scebase_common.h>
 #include <pad.h>
 #include <cmath>
+#include <queue>
 #include "RenderManager.h"
 
 const uint32_t SCREEN_WIDTH = 3840;
@@ -16,7 +17,37 @@ int I_MAZE = 2;
 const float GRID_SIZE = 0.1f;
 const int MAZE_WIDTH = 42;
 const int MAZE_HEIGHT = 22;
-int num_walls = 40 + 40 + 44;
+int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] =
+{
+	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1},
+
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+
+	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1}
+};
+int num_walls = 0;
 
 const float PLAYER_START[2] = { 0.0f, 0.0f };
 const float PLAYER_SPEED = 0.015f;
@@ -71,6 +102,84 @@ int finalize() {
 
 	return ret;
 }
+
+#pragma region AI Section
+// Directions for movement: up, down, left, right
+const int DIRECTION_Y[] = { -1, 1, 0, 0 };
+const int DIRECTION_X[] = { 0, 0, -1, 1 };
+
+bool isValidMove(int row, int col, int grid[MAZE_HEIGHT][MAZE_WIDTH])
+{
+	return (row >= 0 && row < MAZE_HEIGHT &&
+		col >= 0 && col < MAZE_WIDTH &&
+		grid[row][col] == 0 || grid[row][col] == 2);
+}
+
+// BFS function to find the shortest path
+vector<pair<int, int>> findPath(int grid[MAZE_HEIGHT][MAZE_WIDTH], pair<int, int> start, pair<int, int> target) {
+	queue<pair<int, int>> q;
+	bool visited[MAZE_HEIGHT][MAZE_WIDTH] = {};
+	pair<int, int> parent[MAZE_HEIGHT][MAZE_WIDTH];
+
+	for (int i = 0; i < MAZE_HEIGHT; i++) {
+		for (int j = 0; j < MAZE_WIDTH; j++) {
+			parent[i][j] = { -1, -1 }; // Initialize parent array
+		}
+	}
+
+	q.push(start);
+	visited[start.first][start.second] = true;
+
+	while (!q.empty()) {
+		auto current = q.front();
+		q.pop();
+
+		if (current == target) break;
+
+		for (int i = 0; i < 4; i++) {
+			int row = current.first + DIRECTION_Y[i];
+			int col = current.second + DIRECTION_X[i];
+
+			if (isValidMove(row, col, grid) && !visited[row][col]) {
+				visited[row][col] = true;
+				q.push({ row, col });
+				parent[row][col] = current;
+			}
+		}
+	}
+
+	// Reconstruct the path from target to start
+	vector<pair<int, int>> path;
+	for (pair<int, int> at = target; at != make_pair(-1, -1); at = parent[at.first][at.second]) {
+		path.push_back(at);
+	}
+
+	if (path.empty() || path.back() != start) return {};
+
+	reverse(path.begin(), path.end());
+	return path;
+}
+
+// Move the enemy based on the next position in the path
+pair<int, int> moveEnemy(int grid[MAZE_HEIGHT][MAZE_WIDTH], pair<int, int> enemyPos, pair<int, int> playerPos, uint32_t enemyMatrixIndex) 
+{
+	vector<pair<int, int>> path = findPath(grid, enemyPos, playerPos);
+
+	if (path.size() > 1) {
+		return path[1]; // Move to the next position in the path
+	}
+	return enemyPos;
+}
+
+pair<int, int> worldToGrid(float realX, float realY, float startX, float startY, float gridSize) {
+	// Calculate grid indices
+	int row = static_cast<int>(std::floor((startY - realY) / gridSize));
+	int col = static_cast<int>(std::floor((realX - startX) / gridSize));
+
+	return { row, col }; 
+}
+#pragma endregion
+
 
 // accesses the controller and gets info
 bool handleUserEvents(RenderManager* renderManager) {
@@ -241,37 +350,6 @@ void createMaze(Matrix4* matrices, Matrix4 origin)
 	//// Bottom wall
 	//matrices[m++] = origin * Matrix4::translation({ 0, -1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
 
-	int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] =
-	{
-		{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1},
-
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-				
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-				
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-				
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-		{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-
-		{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1}
-	};
-
 	int m = I_MAZE;
 	float startX = 0 - (MAZE_WIDTH / 2) * GRID_SIZE;
 	float startY = (MAZE_HEIGHT / 2) * GRID_SIZE;
@@ -319,6 +397,18 @@ int main(int argc, const char *argv[])
 		renderManager->setClearColor(0, 0, 0, 255);
 		renderManager->init();
 
+		// Initialize the num_walls
+		for (int i = 0; i < MAZE_WIDTH; i++)
+		{
+			for (int j = 0; j < MAZE_HEIGHT; j++)
+			{
+				if (mazeTemplate[j][i] == 1)
+				{
+					num_walls++;
+				}
+			}
+		}
+
 		// Init geometry
 		renderManager->createBasicGeometry(GRID_SIZE);
 		renderManager->createRect(1, ObjectType::Player);
@@ -328,12 +418,25 @@ int main(int argc, const char *argv[])
 		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();
 
-		// matrices[0] is the player position
-		matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f });
-		//matrices[1] = origin * Matrix4::translation({ -1, 0, 0.0f }) * Matrix4::scale({ 0.5,0.5,1.0f });
+		//                         row col
+		pair<int, int> enemyPos = { 1, 1 }; // Enemy position
+		pair<int, int> playerPos_Grid = { 1, 33 }; // Player position 
 
-		// Create maze
+		// matrices[0] is the player position
+		//matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f });
+		
+		// TODO: have a function that can converts position to the index position in our maze grid
+		// This is test code for the AI
+		float startX = 0 - (MAZE_WIDTH / 2) * GRID_SIZE;
+		float startY = (MAZE_HEIGHT / 2) * GRID_SIZE;
+		playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos, startX, startY, GRID_SIZE);
+		matrices[0] = origin * Matrix4::translation({ startX + playerPos_Grid.second * GRID_SIZE, startY - playerPos_Grid.first * GRID_SIZE, 0.0f});
+		enemyPos = moveEnemy(mazeTemplate, enemyPos, playerPos_Grid, 1);
+		matrices[1] = origin * Matrix4::translation({ startX + enemyPos.second * GRID_SIZE, startY - enemyPos.first * GRID_SIZE, 0.0f });
+	
+		// Create maze: set the wall postion
 		createMaze(matrices, origin);
+
 
 		printf("## Initialization has gone all right ##\n");
 
@@ -349,7 +452,11 @@ int main(int argc, const char *argv[])
 			yPlayerPos += PLAYER_SPEED * playerDirectionY;
 																						// Sample rotation code, we can do do this based on the move direc
 			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::rotation(1.5, { 0, 0, 1 });
+			playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos, startX, startY, GRID_SIZE);
 			
+			enemyPos = moveEnemy(mazeTemplate, enemyPos, playerPos_Grid, 1);
+			matrices[1] = origin * Matrix4::translation({ startX + enemyPos.second * GRID_SIZE, startY - enemyPos.first * GRID_SIZE, 0.0f });
+
 			// =========================================================
 			// Wall Collision Detection - AABB from bottom left corner
 			// =========================================================
@@ -511,4 +618,6 @@ int main(int argc, const char *argv[])
 	}
 
 }
+
+
 
