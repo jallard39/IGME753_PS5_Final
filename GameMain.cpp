@@ -4,6 +4,7 @@
 #include <pad.h>
 #include <cmath>
 #include <queue>
+#include <chrono>
 #include "RenderManager.h"
 
 const uint32_t SCREEN_WIDTH = 3840;
@@ -161,13 +162,21 @@ vector<pair<int, int>> findPath(int grid[MAZE_HEIGHT][MAZE_WIDTH], pair<int, int
 }
 
 // Move the enemy based on the next position in the path
-pair<int, int> moveEnemy(int grid[MAZE_HEIGHT][MAZE_WIDTH], pair<int, int> enemyPos, pair<int, int> playerPos, uint32_t enemyMatrixIndex) 
-{
+pair<int, int> moveEnemy(
+	int grid[MAZE_HEIGHT][MAZE_WIDTH],
+	pair<int, int>& enemyPos,
+	pair<int, int> playerPos,
+	float timeNeededToMoveOneGrid,
+	float& elapsedTime
+) {
 	vector<pair<int, int>> path = findPath(grid, enemyPos, playerPos);
 
-	if (path.size() > 1) {
-		return path[1]; // Move to the next position in the path
+	// If enough time has passed, move the enemy
+	if (path.size() > 1 && elapsedTime >= timeNeededToMoveOneGrid) {
+		enemyPos = path[1]; // Move to the next position
+		elapsedTime -= timeNeededToMoveOneGrid; // Reset timer for the next move
 	}
+
 	return enemyPos;
 }
 
@@ -364,25 +373,6 @@ void createMaze(Matrix4* matrices, Matrix4 origin)
 			}
 		}
 	}
-
-	/*
-	float startX = 0 - (MAZE_WIDTH / 2) * WALL_WIDTH;
-	float startY = (MAZE_HEIGHT / 2) * WALL_WIDTH;
-
-	for (int i = 0; i < MAZE_HEIGHT; i++) 
-	{
-		for (int j = 0; j < MAZE_WIDTH; j++)
-		{
-			if (mazeTemplate[i][j] == 1)
-			{
-				wallVerts[0] = { startX + (WALL_WIDTH * j), startY - (WALL_WIDTH * (i + 1)), -0.25f, BLUE[0], BLUE[1], BLUE[2]};
-				wallVerts[1] = { startX + (WALL_WIDTH * (j + 1)), startY - (WALL_WIDTH * (i + 1)), -0.25f, BLUE[0], BLUE[1], BLUE[2] };
-				wallVerts[2] = { startX + (WALL_WIDTH * (j + 1)), startY - (WALL_WIDTH * i), -0.25f,  BLUE[0], BLUE[1], BLUE[2]};
-				wallVerts[3] = { startX + (WALL_WIDTH * j), startY - (WALL_WIDTH * i), -0.25f, BLUE[0], BLUE[1], BLUE[2]};
-				renderManager->createObject(wallVerts, 4, rectangleIndices, 6);
-			}
-		}
-	}*/
 }
 
 int main(int argc, const char *argv[])
@@ -431,9 +421,13 @@ int main(int argc, const char *argv[])
 		float startY = (MAZE_HEIGHT / 2) * GRID_SIZE;
 		playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos, startX, startY, GRID_SIZE);
 		matrices[0] = origin * Matrix4::translation({ startX + playerPos_Grid.second * GRID_SIZE, startY - playerPos_Grid.first * GRID_SIZE, 0.0f});
-		enemyPos = moveEnemy(mazeTemplate, enemyPos, playerPos_Grid, 1);
+
 		matrices[1] = origin * Matrix4::translation({ startX + enemyPos.second * GRID_SIZE, startY - enemyPos.first * GRID_SIZE, 0.0f });
 	
+		float enemySpeed = 0.15f; // Time in seconds to move one step
+		float elapsedTime = 0.0f;
+		auto lastTime = chrono::steady_clock::now();
+
 		// Create maze: set the wall postion
 		createMaze(matrices, origin);
 
@@ -448,13 +442,24 @@ int main(int argc, const char *argv[])
 		
 		// loop until exit
 		while (!done) {
+			auto currentTime = chrono::steady_clock::now();
+			auto duration = currentTime - lastTime;
+			auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();  // in microseconds
+
+			// Convert deltaTime to float seconds
+			float deltaTimeInSeconds = static_cast<float>(deltaTime) / 1000000.0f;
+
+			// Update elapsed time
+			lastTime = currentTime;
+			elapsedTime += deltaTimeInSeconds;
+
 			xPlayerPos += PLAYER_SPEED * playerDirectionX;
 			yPlayerPos += PLAYER_SPEED * playerDirectionY;
 																						// Sample rotation code, we can do do this based on the move direc
 			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::rotation(1.5, { 0, 0, 1 });
 			playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos, startX, startY, GRID_SIZE);
 			
-			enemyPos = moveEnemy(mazeTemplate, enemyPos, playerPos_Grid, 1);
+			enemyPos = moveEnemy(mazeTemplate, enemyPos, playerPos_Grid, enemySpeed, elapsedTime);
 			matrices[1] = origin * Matrix4::translation({ startX + enemyPos.second * GRID_SIZE, startY - enemyPos.first * GRID_SIZE, 0.0f });
 
 			// =========================================================
