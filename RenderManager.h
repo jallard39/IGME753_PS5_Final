@@ -130,6 +130,7 @@ private:
 	// Rec objects under rectangle
 	uint32_t numWall = 0;
 	uint32_t numPlayer = 0;
+	uint32_t numGhost = 0;
 
 	// Circle Info
 	uint32_t numCircles = 0;

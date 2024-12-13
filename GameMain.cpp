@@ -10,7 +10,8 @@ const uint32_t SCREEN_HEIGHT = 2160;
 
 // indices 
 int I_PLAYER = 0;
-int I_MAZE = 1;
+int I_Ghost = 1;
+int I_MAZE = 2;
 
 const float GRID_SIZE = 0.1f;
 const int MAZE_WIDTH = 42;
@@ -321,6 +322,7 @@ int main(int argc, const char *argv[])
 		// Init geometry
 		renderManager->createBasicGeometry(GRID_SIZE);
 		renderManager->createRect(1, ObjectType::Player);
+		renderManager->createRect(1, ObjectType::Ghost);
 		renderManager->createRect(num_walls, ObjectType::Wall); // The first one is the player, the second one is used to test with texture
 
 		Matrix4* matrices = renderManager->createViewMatrix();
@@ -345,7 +347,8 @@ int main(int argc, const char *argv[])
 		while (!done) {
 			xPlayerPos += PLAYER_SPEED * playerDirectionX;
 			yPlayerPos += PLAYER_SPEED * playerDirectionY;
-			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 });
+																						// Sample rotation code, we can do do this based on the move direc
+			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::rotation(1.5, { 0, 0, 1 });
 			
 			// =========================================================
 			// Wall Collision Detection - AABB from bottom left corner

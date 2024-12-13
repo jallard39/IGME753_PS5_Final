@@ -285,6 +285,7 @@ void RenderManager::createRect(uint32_t numRect, ObjectType objType)
 		numWall += numRect;
 		break;
 	case Ghost:
+		numGhost += numRect;
 		break;
 	default:
 		break;
@@ -346,8 +347,8 @@ void RenderManager::LoadTextures()
 	// These are the paths for all the assets we want to load
 	const char* imagePaths[] = {
 		PATH_PREFIX "pacman.gnf",
-		PATH_PREFIX "wall.gnf",
 		PATH_PREFIX "ghost.gnf",
+		PATH_PREFIX "wall.gnf",
 	};
 	uint32_t kNumTextures = sizeof(imagePaths) / sizeof(imagePaths[0]);
 
@@ -698,6 +699,20 @@ void RenderManager::drawScene() {
 
 		ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
 
+		// Ghost Draw
+		for (uint32_t i = 0; i < numGhost; i++)
+		{
+			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+				.setBuffers(0, 1, &vertexBuffer)
+				.setBuffers(1, 1, &matBuffer)
+				.setDrawIndex(i + numCircles + numPlayer); // +1 player
+
+			ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+				.setTextures(0, 1, &mats[1].texture)
+				.setSamplers(0, 1, &mats[1].sampler);
+
+			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+		}
 
 		// Wall Draw
 		for (uint32_t i = 0; i < numWall; i++)
@@ -705,11 +720,11 @@ void RenderManager::drawScene() {
 			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
 				.setBuffers(0, 1, &vertexBuffer)
 				.setBuffers(1, 1, &matBuffer)
-				.setDrawIndex(i + numCircles + 1); // +1 player
+				.setDrawIndex(i + numCircles + numPlayer + numGhost);
 
 			ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
-				.setTextures(0, 1, &mats[1].texture)
-				.setSamplers(0, 1, &mats[1].sampler);
+				.setTextures(0, 1, &mats[2].texture)
+				.setSamplers(0, 1, &mats[2].sampler);
 
 			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
 		}
