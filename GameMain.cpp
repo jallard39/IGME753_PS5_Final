@@ -202,8 +202,7 @@ vector<pair<int, int>> findPath(int grid[MAZE_HEIGHT][MAZE_WIDTH], pair<int, int
 }
 
 // Move the enemy based on the next position in the path
-pair<int, int> moveEnemy(pair<int, int>& enemyPos,pair<int, int> playerPos,
-) {
+pair<int, int> moveEnemy(pair<int, int>& enemyPos,pair<int, int> playerPos) {
 	vector<pair<int, int>> path = findPath(mazeTemplate, enemyPos, playerPos);
 
 	if (path.size() > 1) {
@@ -480,8 +479,13 @@ int main(int argc, const char *argv[])
 			}
 			else if (targetGrid.first - enemyPos_Grid.first < 0)
 			{
-				enemyDirectionY = -1
+				enemyDirectionY = -1;
 			}
+			else
+			{
+				enemyDirectionY = 0;
+			}
+
 			// Col, X
 			if(targetGrid.second - enemyPos_Grid.second > 0)
 			{
@@ -489,7 +493,11 @@ int main(int argc, const char *argv[])
 			}
 			else if (targetGrid.second - enemyPos_Grid.second < 0)
 			{
-				enemyDirectionX = -1
+				enemyDirectionX = -1;
+			}
+			else
+			{
+				enemyDirectionX = 0;
 			}
 
 			xEnemyPos += ENEMY_SPEED * enemyDirectionX;
