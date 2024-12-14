@@ -94,6 +94,12 @@ int playerDirectionY = 0;
 int prevPlayerDirectionX = playerDirectionX;
 int prevPlayerDirectionY = playerDirectionY;
 
+const float ENEMY_SPEED = 0.015f;
+float xEnemyPos = 0.0f;
+float yEnemyPos = 0.0f;
+int enemyDirectionX = 1;
+int enemyDirectionY = 0;
+
 vector<Object> walls;
 
 SceUserServiceUserId userId; // user information
@@ -196,19 +202,12 @@ vector<pair<int, int>> findPath(int grid[MAZE_HEIGHT][MAZE_WIDTH], pair<int, int
 }
 
 // Move the enemy based on the next position in the path
-pair<int, int> moveEnemy(
-	int grid[MAZE_HEIGHT][MAZE_WIDTH],
-	pair<int, int>& enemyPos,
-	pair<int, int> playerPos,
-	float timeNeededToMoveOneGrid,
-	float& elapsedTime
+pair<int, int> moveEnemy(pair<int, int>& enemyPos,pair<int, int> playerPos,
 ) {
-	vector<pair<int, int>> path = findPath(grid, enemyPos, playerPos);
+	vector<pair<int, int>> path = findPath(mazeTemplate, enemyPos, playerPos);
 
-	// If enough time has passed, move the enemy
-	if (path.size() > 1 && elapsedTime >= timeNeededToMoveOneGrid) {
-		enemyPos = path[1]; // Move to the next position
-		elapsedTime -= timeNeededToMoveOneGrid; // Reset timer for the next move
+	if (path.size() > 1) {
+		enemyPos = path[1];
 	}
 
 	return enemyPos;
@@ -442,6 +441,9 @@ int main(int argc, const char *argv[])
 		xPlayerPos = START_X + (playerPos_Grid.second * GRID_SIZE);
 		float realY = START_Y - (playerPos_Grid.first * GRID_SIZE);;
 
+		xEnemyPos = START_X + (enemyPos_Grid.second * GRID_SIZE);
+		yEnemyPos = START_Y + (enemyPos_Grid.first * GRID_SIZE);
+
 		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();
 
@@ -450,10 +452,6 @@ int main(int argc, const char *argv[])
 
 		// matrices[1] is the enemy position
 		matrices[1] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
-	
-		float enemySpeed = 0.15f; // Time in seconds to move one step
-		float elapsedTime = 0.0f;
-		auto lastTime = chrono::steady_clock::now();
 
 		// Create maze: set the wall postion
 		createMaze(matrices, origin);
@@ -468,25 +466,36 @@ int main(int argc, const char *argv[])
 		
 		// loop until exit
 		while (!done) {
-			auto currentTime = chrono::steady_clock::now();
-			auto duration = currentTime - lastTime;
-			auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();  // in microseconds
-
-			// Convert deltaTime to float seconds
-			float deltaTimeInSeconds = static_cast<float>(deltaTime) / 1000000.0f;
-
-			// Update elapsed time
-			lastTime = currentTime;
-			elapsedTime += deltaTimeInSeconds;
-
 			xPlayerPos += PLAYER_SPEED * playerDirectionX;
 			yPlayerPos += PLAYER_SPEED * playerDirectionY;
 																						// Sample rotation code, we can do do this based on the move direc
 			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::rotation(1.5, { 0, 0, 1 });
 			playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos);
 			
-			enemyPos_Grid = moveEnemy(mazeTemplate, enemyPos_Grid, playerPos_Grid, enemySpeed, elapsedTime);
-			matrices[1] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
+			pair<int, int> targetGrid = moveEnemy(enemyPos_Grid, playerPos_Grid);
+			// This is row, this will be y
+			if(targetGrid.first - enemyPos_Grid.first > 0)
+			{
+				enemyDirectionY = 1;
+			}
+			else if (targetGrid.first - enemyPos_Grid.first < 0)
+			{
+				enemyDirectionY = -1
+			}
+			// Col, X
+			if(targetGrid.second - enemyPos_Grid.second > 0)
+			{
+				enemyDirectionX = 1;
+			}
+			else if (targetGrid.second - enemyPos_Grid.second < 0)
+			{
+				enemyDirectionX = -1
+			}
+
+			xEnemyPos += ENEMY_SPEED * enemyDirectionX;
+			yEnemyPos += ENEMY_SPEED * enemyDirectionY;
+			matrices[1] = origin * Matrix4::translation({ xEnemyPos, yEnemyPos, 0 });
+			enemyPos_Grid = worldToGrid(xEnemyPos, yEnemyPos);
 
 			// =========================================================
 			// Wall Collision Detection - AABB from bottom left corner
