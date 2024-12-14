@@ -753,6 +753,7 @@ void RenderManager::drawScene() {
 				.setSamplers(0, 1, &mats[2].sampler);
 
 			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+			drawIndex++;
 		}
 
 

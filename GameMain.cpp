@@ -21,7 +21,6 @@ const float GRID_SIZE = 0.1f;
 const int MAZE_WIDTH = 42;
 const int MAZE_HEIGHT = 22;
 
-
 const float START_X = 0 - (MAZE_WIDTH / 2) * GRID_SIZE;
 const float START_Y = (MAZE_HEIGHT / 2) * GRID_SIZE;
 
@@ -55,6 +54,8 @@ int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] =
 
 	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1}	  // 21
 };
+
+int num_enemies = 1;
 int num_walls = 0;
 int num_collectibles = 0;
 
@@ -80,10 +81,11 @@ Matrix4 gridToMatrix(int row, int col)
 
 #pragma endregion
 
-//                              row col
-pair<int, int> enemyPos_Grid = { 11, 20 }; // Enemy Start position
-pair<int, int> playerPos_Grid = {13, 21 }; // Player Start position 
+//                                row col
+pair<int, int> enemyPos_Grid =  { 11, 20 }; // Enemy Start position
+pair<int, int> playerPos_Grid = { 14, 21 }; // Player Start position 
 
+const float PLAYER_SIZE = 0.09f;
 const float PLAYER_SPEED = 0.015f;
 
 float xPlayerPos = 0.0f;
@@ -91,10 +93,8 @@ float yPlayerPos = 0.0f;
 
 int playerDirectionX = 1;
 int playerDirectionY = 0;
-int prevPlayerDirectionX = playerDirectionX;
-int prevPlayerDirectionY = playerDirectionY;
-
-vector<Object> walls;
+int prevPlayerDirectionX = 0;
+int prevPlayerDirectionY = 0;
 
 SceUserServiceUserId userId; // user information
 int32_t controllerHandle; 
@@ -376,17 +376,8 @@ bool handleUserEvents(RenderManager* renderManager) {
 
 void createMaze(Matrix4* matrices, Matrix4 origin)
 {
-	//// Left wall
-	//matrices[m++] = origin * Matrix4::translation({ -2.2, 0, 0.0f }) * Matrix4::scale({ 0.2,5,1.0f });
-	//// Right wall
-	//matrices[m++] = origin * Matrix4::translation({ 2.2, 0, 0.0f }) * Matrix4::scale({ 0.2,5,1.0f });
-	//// Top wall
-	//matrices[m++] = origin * Matrix4::translation({ 0, 1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
-	//// Bottom wall
-	//matrices[m++] = origin * Matrix4::translation({ 0, -1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
-
-	int m = I_MAZE;
-	int collective = I_MAZE + num_walls;
+	int maze = num_enemies;
+	int collective = maze + num_walls;
 
 	for (int i = 0; i < MAZE_HEIGHT; i++)
 	{
@@ -394,7 +385,7 @@ void createMaze(Matrix4* matrices, Matrix4 origin)
 		{
 			if (mazeTemplate[i][j] == 1)
 			{
-				matrices[m++] = origin * gridToMatrix(i,j);
+				matrices[maze++] = origin * gridToMatrix(i,j);
 			}
 			else if (mazeTemplate[i][j] == 2)
 			{
@@ -425,7 +416,7 @@ int main(int argc, const char *argv[])
 				{
 					num_walls++;
 				}
-				else if (mazeTemplate[i][j] == 2)
+				else if (mazeTemplate[i][j] == 3)
 				{
 					num_collectibles++;
 				}
@@ -440,13 +431,13 @@ int main(int argc, const char *argv[])
 		renderManager->createRect(num_collectibles, ObjectType::Collectible);
 
 		xPlayerPos = START_X + (playerPos_Grid.second * GRID_SIZE);
-		float realY = START_Y - (playerPos_Grid.first * GRID_SIZE);;
+		yPlayerPos = START_Y - (playerPos_Grid.first * GRID_SIZE);
 
 		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();
 
 		// matrices[0] is the player position
-		matrices[0] = origin * gridToMatrix(playerPos_Grid.first, playerPos_Grid.second);
+		matrices[0] = origin * gridToMatrix(playerPos_Grid.first, playerPos_Grid.second) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 });
 
 		// matrices[1] is the enemy position
 		matrices[1] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
@@ -479,161 +470,110 @@ int main(int argc, const char *argv[])
 			lastTime = currentTime;
 			elapsedTime += deltaTimeInSeconds;
 
+			// =========================================================
+			// Wall Collision Detection
+			// =========================================================
+
+			// Need to do this twice: once to correct user input, once to check actual movement
+			for (int i = 0; i < 2; i++)
+			{
+				// Check player position next frame
+				float playerNextX = xPlayerPos + PLAYER_SPEED * playerDirectionX;
+				float playerNextY = yPlayerPos + PLAYER_SPEED * playerDirectionY;
+				pair<int, int> gridOverlap1;
+				pair<int, int> gridOverlap2;
+
+				float offset = (GRID_SIZE - PLAYER_SIZE) / 2;
+
+				if (playerDirectionX == 1)
+				{
+					gridOverlap1 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - (PLAYER_SIZE + offset));
+					gridOverlap2 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - offset);
+				}
+				if (playerDirectionX == -1)
+				{
+					gridOverlap1 = worldToGrid(playerNextX + offset, playerNextY - offset);
+					gridOverlap2 = worldToGrid(playerNextX + offset, playerNextY - (PLAYER_SIZE + offset));
+				}
+				if (playerDirectionY == 1)
+				{
+					gridOverlap1 = worldToGrid(playerNextX + offset, playerNextY - offset);
+					gridOverlap2 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - offset);
+				}
+				if (playerDirectionY == -1)
+				{
+					gridOverlap1 = worldToGrid(playerNextX + offset, playerNextY - (PLAYER_SIZE + offset));
+					gridOverlap2 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - (PLAYER_SIZE + offset));
+				}
+
+				// Check if moving into a wall
+				if (mazeTemplate[gridOverlap1.first][gridOverlap1.second] == 1 ||
+					mazeTemplate[gridOverlap2.first][gridOverlap2.second] == 1)
+				{
+					// Differentiate between horizontal and vertical directions
+					if (playerDirectionY == 0) // moving horizontally
+					{
+						if (prevPlayerDirectionX == 0) // switching directions
+						{
+							playerDirectionX = prevPlayerDirectionX;
+							playerDirectionY = prevPlayerDirectionY;
+						}
+						else
+						{
+							// Snap player to grid
+							if (playerDirectionX == 1)
+							{
+								xPlayerPos = START_X + ((gridOverlap1.second - 1) * GRID_SIZE);
+							}
+							else if (playerDirectionX == -1)
+							{
+								xPlayerPos = START_X + ((gridOverlap1.second + 1) * GRID_SIZE);
+							}
+
+							playerDirectionX = 0;
+						}
+					}
+					else if (playerDirectionX == 0) // moving vertically
+					{
+						if (prevPlayerDirectionY == 0) // switching directions
+						{
+							playerDirectionX = prevPlayerDirectionX;
+							playerDirectionY = prevPlayerDirectionY;
+						}
+						else
+						{
+							// Snap player to grid
+							if (playerDirectionY == 1)
+							{
+								yPlayerPos = START_Y - ((gridOverlap1.first + 1) * GRID_SIZE);
+							}
+							else if (playerDirectionY == -1)
+							{
+								yPlayerPos = START_Y - ((gridOverlap1.first - 1) * GRID_SIZE);
+							}
+
+							playerDirectionY = 0;
+						}
+					}
+				}
+
+				if (playerDirectionX == 0 && playerDirectionY == 0) break;
+			}
+
 			xPlayerPos += PLAYER_SPEED * playerDirectionX;
 			yPlayerPos += PLAYER_SPEED * playerDirectionY;
-																						// Sample rotation code, we can do do this based on the move direc
-			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::rotation(1.5, { 0, 0, 1 });
+
+			// Sample rotation code, we can do do this based on the move direc
+			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 }); // * Matrix4::rotation(1.5, { 0, 0, 1 });
 			playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos);
-			
+
 			enemyPos_Grid = moveEnemy(mazeTemplate, enemyPos_Grid, playerPos_Grid, enemySpeed, elapsedTime);
 			matrices[1] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
 
-			// =========================================================
-			// Wall Collision Detection - AABB from bottom left corner
-			// =========================================================
-
-			//// Get player location next frame
-			//float playerNextX = player.vertices[0].pos[0] + PLAYER_SPEED * playerDirectionX;
-			//float playerNextY = player.vertices[0].pos[1] + PLAYER_SPEED * playerDirectionY;
-
-			//for (int i = 0; i < walls.size(); i++) 
-			//{
-			//	// Get rectangle bounds
-			//	float wallX = walls[i].vertices[0].pos[0];
-			//	float wallY = walls[i].vertices[0].pos[1];
-			//	float wallWidth = walls[i].vertices[1].pos[0] - wallX;
-			//	float wallHeight = walls[i].vertices[3].pos[1] - wallY;
-
-			//	// Check for collision
-			//	if (playerNextX < wallX + wallWidth && playerNextX + PLAYER_SIZE > wallX &&
-			//		playerNextY < wallY + wallHeight && playerNextY + PLAYER_SIZE > wallY) 
-			//	{
-			//		// Differentiate between horizontal and vertical directions
-			//		if (playerDirectionY == 0) // moving horizontally
-			//		{
-			//			if (prevPlayerDirectionX == 0) // switching directions
-			//			{
-			//				playerDirectionX = prevPlayerDirectionX;
-			//				playerDirectionY = prevPlayerDirectionY;
-			//			}
-			//			else
-			//			{
-			//				playerDirectionX = 0;
-			//			}
-			//		}
-			//		else if (playerDirectionX == 0) // moving vertically
-			//		{
-			//			if (prevPlayerDirectionY == 0) // switching directions
-			//			{
-			//				playerDirectionX = prevPlayerDirectionX;
-			//				playerDirectionY = prevPlayerDirectionY;
-			//			}
-			//			else
-			//			{
-			//				playerDirectionY = 0;
-			//			}
-			//		}
-
-			//	}
-			//}
-
 			//renderManager->updateBallPosition(PLAYER_SPEED * playerDirectionX, PLAYER_SPEED * playerDirectionY);
 
-			//prevPlayerDirectionX = playerDirectionX;
-			//prevPlayerDirectionY = playerDirectionY;
-			
-			{
-			// =====================================
-			// OLD COLLISION DETECTION
-			// =====================================
-			//for (int i = 1; i < allObjects.size(); i++)
-			//{
-			//	if (allObjects[i].isActive)
-			//	{
-			//		// Track if a collision is detected
-			//		bool collisionDetected = false;
-
-			//		// Get rectangle bounds
-			//		float xMin = allObjects[i].vertices[0].pos[0];
-			//		float xMax = allObjects[i].vertices[2].pos[0];
-			//		float yMin = allObjects[i].vertices[0].pos[1];
-			//		float yMax = allObjects[i].vertices[2].pos[1];
-
-			//		// Get center of circle
-			//		float circleCenter_X = player.vertices[0].pos[0];
-			//		float circleCenter_Y = player.vertices[0].pos[1];
-
-			//		// Vertical collisions
-			//		if (circleCenter_X >= xMin && circleCenter_X <= xMax)
-			//		{
-			//			if (circleCenter_Y >= yMax && circleCenter_Y - yMax < RADIUS ||
-			//				circleCenter_Y <= yMin && yMin - circleCenter_Y < RADIUS) 
-			//			{
-			//				collisionDetected = true;
-			//				directionY *= -1;
-			//			}
-			//		}
-			//		// Horizontal collisions
-			//		else if (circleCenter_Y >= yMin && circleCenter_Y <= yMax)
-			//		{
-			//			if (circleCenter_X >= xMax && circleCenter_X - xMax < RADIUS ||
-			//				circleCenter_X <= xMin && xMin - circleCenter_X < RADIUS)
-			//			{
-			//				collisionDetected = true;
-			//				directionX *= -1;
-			//			}
-			//		}
-			//		// Corner collisions (both horizontal and vertical)
-			//		else
-			//		{
-			//			// Get closest x and y
-			//			float closestX;
-			//			if (circleCenter_X < xMin) closestX = xMin;
-			//			else if (circleCenter_X > xMax) closestX = xMax;
-			//			else if (xMax - circleCenter_X + xMin - circleCenter_X > 0) closestX = xMin;
-			//			else closestX = xMax;
-
-			//			float closestY;
-			//			if (circleCenter_Y < yMin) closestY = yMin;
-			//			else if (circleCenter_Y > yMax) closestY = yMax;
-			//			else if (yMax - circleCenter_Y + yMin - circleCenter_Y > 0) closestY = yMin;
-			//			else closestY = yMax;
-
-			//			// Check if radius overlaps with closest corner
-			//			float dx = circleCenter_X - closestX;
-			//			float dy = circleCenter_Y - closestY;
-
-			//			float distanceSquared = dx * dx + dy * dy;
-
-			//			if (distanceSquared <= RADIUS * RADIUS)
-			//			{
-			//				collisionDetected = true;
-
-			//				if ((dx < 0) ? -dx : dx > (dy < 0) ? -dy : dy) {
-			//					//// Horizontal collision
-			//					//if (dx > 0) return "Left";
-			//					//else return "Right";
-
-			//					directionX *= -1;
-			//				}
-			//				else {
-			//					//// Vertical collision
-			//					//if (dy > 0) return "Top";
-			//					//else return "Bottom";
-
-			//					directionY *= -1;
-			//				}
-			//			}
-			//		}
-
-			//		// If collision detected, destroy brick
-			//		if (collisionDetected && i != 1)
-			//		{
-			//			allObjects[i].isActive = false;
-			//		}
-			//	}
-			//}
-			}
+			prevPlayerDirectionX = playerDirectionX;
+			prevPlayerDirectionY = playerDirectionY;
 
 			renderManager->drawScene();
 			// Check to see if user has requested to quit the loop and update simple app stuff

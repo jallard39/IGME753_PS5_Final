@@ -17,10 +17,7 @@ D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\GameMain.cpp(148,32): 
         |                                    )
   fix-it:"D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\GameMain.cpp":{147:10-147:10}:"("
   fix-it:"D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\GameMain.cpp":{149:22-149:22}:")"
-D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\GameMain.cpp(443,9): warning : unused variable 'realY' [-Wunused-variable]
-    443 |                 float realY = START_Y - (playerPos_Grid.first * GRID_SIZE);;
-        |                       ^~~~~
-  2 warnings generated.
+  1 warning generated.
 prospero-lld : warning : C:\Program Files (x86)\SCE\Prospero SDKs\9.000\host_tools\lib\libSceAgcTextureTool_debug.lib: archive member 'libSceAgcTextureTool_Debug.dll' is neither ET_REL nor LLVM bitcode
 prospero-lld : warning : C:\Program Files (x86)\SCE\Prospero SDKs\9.000\host_tools\lib\libSceAgcTextureTool_debug.lib: archive member 'libSceAgcTextureTool_Debug.dll' is neither ET_REL nor LLVM bitcode
 prospero-lld : warning : C:\Program Files (x86)\SCE\Prospero SDKs\9.000\host_tools\lib\libSceAgcTextureTool_debug.lib: archive member 'libSceAgcTextureTool_Debug.dll' is neither ET_REL nor LLVM bitcode
