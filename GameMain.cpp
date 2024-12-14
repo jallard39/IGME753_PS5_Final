@@ -15,42 +15,75 @@ int I_PLAYER = 0;
 int I_Ghost = 1;
 int I_MAZE = 2;
 
+#pragma region MazeSetUp
+
 const float GRID_SIZE = 0.1f;
 const int MAZE_WIDTH = 42;
 const int MAZE_HEIGHT = 22;
+
+
+const float START_X = 0 - (MAZE_WIDTH / 2) * GRID_SIZE;
+const float START_Y = (MAZE_HEIGHT / 2) * GRID_SIZE;
+
 int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] =
-{
-	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1},
+{//  0   1  2  3  4  5   6  7  8  9  10  11 12 13 14 15 16  17 18 19 20 21 22 23 24 25  26 27 28 29 30  31 32 33 34 35  36 37 38 39 40   41 
+	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1},  // 0
 
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  3, 0, 0, 0, 0,  3, 3, 3, 3, 3,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},  // 1
+	{1,  0, 1, 1, 1, 1,  1, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 1, 1,  1, 1, 0, 0, 0,  0, 0, 0, 0, 1,  1, 1, 1, 1, 0,  1},  // 2
+	{1,  3, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 1, 1, 1, 1,  1, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  1},  // 3
+	{1,  0, 1, 3, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  3, 3, 3, 3, 3,  0, 0, 0, 1, 0,  1},  // 4
+	{1,  3, 1, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  1},  // 5
 
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  3, 1, 3, 0, 1,  1, 1, 1, 1, 1,  0, 0, 0, 3, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 1, 0,  1},  // 6
+	{1,  0, 0, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 3, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 0, 0,  1},  // 7
+	{1,  3, 0, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 3, 0,  0, 0, 3, 3, 0,  0, 3, 3, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 0, 0,  1},  // 8
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 3, 0,  0, 0, 1, 1, 0,  0, 1, 1, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 0, 0,  1},  // 9 
+	{1,  3, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 3, 0,  0, 0, 1, 0, 0,  0, 0, 1, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 0, 0,  1},  // 10
 
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  3, 0, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 1, 0, 0,  0, 0, 1, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 3,  1},  // 11
+	{1,  0, 0, 3, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 1, 1, 1,  1, 1, 1, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 3,  1},  // 12 
+	{1,  3, 0, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 3,  1},  // 13
+	{1,  0, 0, 3, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 3,  1},  // 14 
+	{1,  3, 1, 0, 0, 1,  1, 1, 1, 1, 1,  0, 0, 0, 1, 1,  1, 1, 0, 0, 0,  0, 0, 0, 1, 1,  1, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 1, 3,  1},  // 15
 
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},
+	{1,  3, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1,  0, 0, 1, 0, 0,  0, 0, 0, 1, 0,  1},  // 16
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1,  0, 0, 1, 0, 0,  0, 0, 0, 1, 0,  1},  // 17
+	{1,  3, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 1, 1, 1, 1,  1, 1, 1, 0, 0,  0, 0, 0, 0, 1,  0, 0, 1, 0, 0,  0, 0, 0, 1, 0,  1},  // 18 
+	{1,  0, 1, 1, 1, 1,  1, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1,  0, 0, 1, 0, 1,  1, 1, 1, 1, 0,  1},  // 19
+	{1,  3, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},  // 20
 
-	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1}
+	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1}	  // 21
 };
 int num_walls = 0;
+int num_collectibles = 0;
 
-const float PLAYER_START[2] = { 0.0f, 0.0f };
+
+// Change the world pos to the grid indices
+pair<int, int> worldToGrid(float realX, float realY) {
+	// Calculate grid indices
+	int row = static_cast<int>(std::floor((START_Y - realY) / GRID_SIZE));
+	int col = static_cast<int>(std::floor((realX - START_X) / GRID_SIZE));
+
+	return { row, col };
+}
+
+// Change the grid to world translation matrix
+Matrix4 gridToMatrix(int row, int col)
+{
+	// Calculate the world coordinates corresponding to the grid position
+	float realX = START_X + (col * GRID_SIZE);
+	float realY = START_Y - (row * GRID_SIZE);
+
+	return Matrix4::translation({ realX, realY, 0.0f });
+}
+
+#pragma endregion
+
+//                              row col
+pair<int, int> enemyPos_Grid = { 11, 20 }; // Enemy Start position
+pair<int, int> playerPos_Grid = {13, 21 }; // Player Start position 
+
 const float PLAYER_SPEED = 0.015f;
 
 float xPlayerPos = 0.0f;
@@ -113,7 +146,8 @@ bool isValidMove(int row, int col, int grid[MAZE_HEIGHT][MAZE_WIDTH])
 {
 	return (row >= 0 && row < MAZE_HEIGHT &&
 		col >= 0 && col < MAZE_WIDTH &&
-		grid[row][col] == 0 || grid[row][col] == 2);
+		grid[row][col] == 0 || grid[row][col] == 3);
+	//  This is empty space OR  Collectible
 }
 
 // BFS function to find the shortest path
@@ -178,14 +212,6 @@ pair<int, int> moveEnemy(
 	}
 
 	return enemyPos;
-}
-
-pair<int, int> worldToGrid(float realX, float realY, float startX, float startY, float gridSize) {
-	// Calculate grid indices
-	int row = static_cast<int>(std::floor((startY - realY) / gridSize));
-	int col = static_cast<int>(std::floor((realX - startX) / gridSize));
-
-	return { row, col }; 
 }
 #pragma endregion
 
@@ -360,16 +386,19 @@ void createMaze(Matrix4* matrices, Matrix4 origin)
 	//matrices[m++] = origin * Matrix4::translation({ 0, -1.2, 0.0f }) * Matrix4::scale({ 8.8,0.2,1.0f });
 
 	int m = I_MAZE;
-	float startX = 0 - (MAZE_WIDTH / 2) * GRID_SIZE;
-	float startY = (MAZE_HEIGHT / 2) * GRID_SIZE;
+	int collective = I_MAZE + num_walls;
 
-	for (int i = 0; i < MAZE_WIDTH; i++)
+	for (int i = 0; i < MAZE_HEIGHT; i++)
 	{
-		for (int j = 0; j < MAZE_HEIGHT; j++)
+		for (int j = 0; j < MAZE_WIDTH; j++)
 		{
-			if (mazeTemplate[j][i] == 1) 
+			if (mazeTemplate[i][j] == 1)
 			{
-				matrices[m++] = origin * Matrix4::translation({ startX + (i * GRID_SIZE), startY - (j * GRID_SIZE), 0.0f});
+				matrices[m++] = origin * gridToMatrix(i,j);
+			}
+			else if (mazeTemplate[i][j] == 2)
+			{
+				matrices[collective++] = origin * gridToMatrix(i, j);
 			}
 		}
 	}
@@ -388,13 +417,17 @@ int main(int argc, const char *argv[])
 		renderManager->init();
 
 		// Initialize the num_walls
-		for (int i = 0; i < MAZE_WIDTH; i++)
+		for (int i = 0; i < MAZE_HEIGHT; i++)
 		{
-			for (int j = 0; j < MAZE_HEIGHT; j++)
+			for (int j = 0; j < MAZE_WIDTH; j++)
 			{
-				if (mazeTemplate[j][i] == 1)
+				if (mazeTemplate[i][j] == 1)
 				{
 					num_walls++;
+				}
+				else if (mazeTemplate[i][j] == 2)
+				{
+					num_collectibles++;
 				}
 			}
 		}
@@ -403,26 +436,20 @@ int main(int argc, const char *argv[])
 		renderManager->createBasicGeometry(GRID_SIZE);
 		renderManager->createRect(1, ObjectType::Player);
 		renderManager->createRect(1, ObjectType::Ghost);
-		renderManager->createRect(num_walls, ObjectType::Wall); // The first one is the player, the second one is used to test with texture
+		renderManager->createRect(num_walls, ObjectType::Wall); 
+		renderManager->createRect(num_collectibles, ObjectType::Collectible);
+
+		xPlayerPos = START_X + (playerPos_Grid.second * GRID_SIZE);
+		float realY = START_Y - (playerPos_Grid.first * GRID_SIZE);;
 
 		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();
 
-		//                         row col
-		pair<int, int> enemyPos = { 1, 1 }; // Enemy position
-		pair<int, int> playerPos_Grid = { 1, 33 }; // Player position 
-
 		// matrices[0] is the player position
-		//matrices[0] = origin * Matrix4::translation({ PLAYER_START[0], PLAYER_START[1], 0.0f });
-		
-		// TODO: have a function that can converts position to the index position in our maze grid
-		// This is test code for the AI
-		float startX = 0 - (MAZE_WIDTH / 2) * GRID_SIZE;
-		float startY = (MAZE_HEIGHT / 2) * GRID_SIZE;
-		playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos, startX, startY, GRID_SIZE);
-		matrices[0] = origin * Matrix4::translation({ startX + playerPos_Grid.second * GRID_SIZE, startY - playerPos_Grid.first * GRID_SIZE, 0.0f});
+		matrices[0] = origin * gridToMatrix(playerPos_Grid.first, playerPos_Grid.second);
 
-		matrices[1] = origin * Matrix4::translation({ startX + enemyPos.second * GRID_SIZE, startY - enemyPos.first * GRID_SIZE, 0.0f });
+		// matrices[1] is the enemy position
+		matrices[1] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
 	
 		float enemySpeed = 0.15f; // Time in seconds to move one step
 		float elapsedTime = 0.0f;
@@ -430,7 +457,6 @@ int main(int argc, const char *argv[])
 
 		// Create maze: set the wall postion
 		createMaze(matrices, origin);
-
 
 		printf("## Initialization has gone all right ##\n");
 
@@ -457,10 +483,10 @@ int main(int argc, const char *argv[])
 			yPlayerPos += PLAYER_SPEED * playerDirectionY;
 																						// Sample rotation code, we can do do this based on the move direc
 			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::rotation(1.5, { 0, 0, 1 });
-			playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos, startX, startY, GRID_SIZE);
+			playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos);
 			
-			enemyPos = moveEnemy(mazeTemplate, enemyPos, playerPos_Grid, enemySpeed, elapsedTime);
-			matrices[1] = origin * Matrix4::translation({ startX + enemyPos.second * GRID_SIZE, startY - enemyPos.first * GRID_SIZE, 0.0f });
+			enemyPos_Grid = moveEnemy(mazeTemplate, enemyPos_Grid, playerPos_Grid, enemySpeed, elapsedTime);
+			matrices[1] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
 
 			// =========================================================
 			// Wall Collision Detection - AABB from bottom left corner

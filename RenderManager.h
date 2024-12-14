@@ -98,11 +98,12 @@ struct Material
 };
 
 enum ObjectType {
-	Player,
-	Wall,
-	Ghost,
+	EmptyPlace = 0,
+	Wall = 1,
+	Player = 2,
+	Collectible =3,
+	Ghost = 4,
 };
-
 
 // Base class for all games that need a rendering loop
 class RenderManager
@@ -131,6 +132,7 @@ private:
 	uint32_t numWall = 0;
 	uint32_t numPlayer = 0;
 	uint32_t numGhost = 0;
+	uint32_t numCollectible = 0;
 
 	// Circle Info
 	uint32_t numCircles = 0;

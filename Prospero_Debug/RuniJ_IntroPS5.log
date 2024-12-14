@@ -1,25 +1,25 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Platforms\Prospero\Prospero.CppBuild.targets(100,5): warning MSB8028: The intermediate directory (Prospero_Debug\) contains files shared from another project (BreakOut.vcxproj, RuniJ_IntroPS5.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   GameMain.cpp
-D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\GameMain.cpp(115,32): warning : '&&' within '||' [-Wlogical-op-parentheses]
-    114 |         return (row >= 0 && row < MAZE_HEIGHT &&
+D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\GameMain.cpp(148,32): warning : '&&' within '||' [-Wlogical-op-parentheses]
+    147 |         return (row >= 0 && row < MAZE_HEIGHT &&
         |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    115 |                 col >= 0 && col < MAZE_WIDTH &&
+    148 |                 col >= 0 && col < MAZE_WIDTH &&
         |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
-    116 |                 grid[row][col] == 0 || grid[row][col] == 2);
+    149 |                 grid[row][col] == 0 || grid[row][col] == 3);
         |                 ~~~~~~~~~~~~~~~~~~~ ~~
-  D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\GameMain.cpp(115,32): note: place parentheses around the '&&' expression to silence this warning
-    114 |         return (row >= 0 && row < MAZE_HEIGHT &&
+  D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\GameMain.cpp(148,32): note: place parentheses around the '&&' expression to silence this warning
+    147 |         return (row >= 0 && row < MAZE_HEIGHT &&
         |                 
         |                 (
-    115 |                 col >= 0 && col < MAZE_WIDTH &&
+    148 |                 col >= 0 && col < MAZE_WIDTH &&
         |                                              ^
-    116 |                 grid[row][col] == 0 || grid[row][col] == 2);
+    149 |                 grid[row][col] == 0 || grid[row][col] == 3);
         |                                    )
-  fix-it:"D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\GameMain.cpp":{114:10-114:10}:"("
-  fix-it:"D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\GameMain.cpp":{116:22-116:22}:")"
-D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\GameMain.cpp(53,13): warning : unused variable 'PLAYER_START' [-Wunused-const-variable]
-     53 | const float PLAYER_START[2] = { 0.0f, 0.0f };
-        |             ^~~~~~~~~~~~
+  fix-it:"D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\GameMain.cpp":{147:10-147:10}:"("
+  fix-it:"D:\\Profiles\\GCCISAdmin\\Documents\\GitHub\\IGME753_PS5_Final\\GameMain.cpp":{149:22-149:22}:")"
+D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\GameMain.cpp(443,9): warning : unused variable 'realY' [-Wunused-variable]
+    443 |                 float realY = START_Y - (playerPos_Grid.first * GRID_SIZE);;
+        |                       ^~~~~
   2 warnings generated.
 prospero-lld : warning : C:\Program Files (x86)\SCE\Prospero SDKs\9.000\host_tools\lib\libSceAgcTextureTool_debug.lib: archive member 'libSceAgcTextureTool_Debug.dll' is neither ET_REL nor LLVM bitcode
 prospero-lld : warning : C:\Program Files (x86)\SCE\Prospero SDKs\9.000\host_tools\lib\libSceAgcTextureTool_debug.lib: archive member 'libSceAgcTextureTool_Debug.dll' is neither ET_REL nor LLVM bitcode
