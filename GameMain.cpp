@@ -97,7 +97,7 @@ int prevPlayerDirectionY = playerDirectionY;
 const float ENEMY_SPEED = 0.015f;
 float xEnemyPos = 0.0f;
 float yEnemyPos = 0.0f;
-int enemyDirectionX = 1;
+int enemyDirectionX = 0;
 int enemyDirectionY = 0;
 
 vector<Object> walls;
@@ -206,7 +206,7 @@ pair<int, int> moveEnemy(pair<int, int>& enemyPos,pair<int, int> playerPos) {
 	vector<pair<int, int>> path = findPath(mazeTemplate, enemyPos, playerPos);
 
 	if (path.size() > 1) {
-		enemyPos = path[1];
+		return path[1];
 	}
 
 	return enemyPos;
@@ -437,6 +437,7 @@ int main(int argc, const char *argv[])
 		renderManager->createRect(num_walls, ObjectType::Wall); 
 		renderManager->createRect(num_collectibles, ObjectType::Collectible);
 
+		// Get the real x, y position for player and enemy based on the grid position
 		xPlayerPos = START_X + (playerPos_Grid.second * GRID_SIZE);
 		float realY = START_Y - (playerPos_Grid.first * GRID_SIZE);;
 
