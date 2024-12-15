@@ -11,9 +11,18 @@ const uint32_t SCREEN_WIDTH = 3840;
 const uint32_t SCREEN_HEIGHT = 2160;
 
 // indices 
-int I_PLAYER = 0;
-int I_Ghost = 1;
-int I_MAZE = 2;
+int I_SCREEN = 0;
+int I_PLAYER = 1;
+int I_ENEMY = 2;
+int I_MAZE = 3;
+int I_COLLECTIBLE = 4;
+
+enum GameState {
+	Game = 1,
+	GameWin = 2
+};
+
+GameState gameState = Game;
 
 #pragma region MazeSetUp
 
@@ -26,38 +35,41 @@ const float START_Y = (MAZE_HEIGHT / 2) * GRID_SIZE;
 
 int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] =
 {//  0   1  2  3  4  5   6  7  8  9  10  11 12 13 14 15 16  17 18 19 20 21 22 23 24 25  26 27 28 29 30  31 32 33 34 35  36 37 38 39 40   41 
-	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1},  // 0
+	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 2, 2, 2, 2,  2, 2, 2, 2, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1},  // 0
 
-	{1,  3, 0, 0, 0, 0,  3, 3, 3, 3, 3,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},  // 1
-	{1,  0, 1, 1, 1, 1,  1, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 1, 1,  1, 1, 0, 0, 0,  0, 0, 0, 0, 1,  1, 1, 1, 1, 0,  1},  // 2
-	{1,  3, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 1, 1, 1, 1,  1, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  1},  // 3
-	{1,  0, 1, 3, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  3, 3, 3, 3, 3,  0, 0, 0, 1, 0,  1},  // 4
-	{1,  3, 1, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  1},  // 5
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1, 2, 2, 2, 2,  2, 2, 2, 2, 1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},  // 1
+	{1,  0, 1, 1, 1, 1,  0, 1, 1, 1, 0,  1, 1, 0, 1, 0,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  0, 1, 0, 1, 1,  0, 1, 1, 1, 0,  1, 1, 1, 1, 0,  1},  // 2
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 1, 0,  1, 0, 0, 1, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 1,  0, 1, 0, 0, 0,  0, 0, 0, 1, 0,  1},  // 3
+	{1,  0, 1, 0, 1, 1,  0, 1, 0, 1, 0,  0, 0, 1, 1, 0,  1, 1, 0, 1, 1,  1, 1, 0, 1, 1,  0, 1, 1, 0, 0,  0, 1, 0, 1, 0,  1, 1, 0, 1, 0,  1},  // 4
+	{1,  0, 1, 0, 1, 1,  0, 1, 0, 1, 0,  1, 0, 1, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 1,  0, 1, 0, 1, 0,  1, 1, 0, 1, 0,  1},  // 5
 
-	{1,  3, 1, 3, 0, 1,  1, 1, 1, 1, 1,  0, 0, 0, 3, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 1, 0,  1},  // 6
-	{1,  0, 0, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 3, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 0, 0,  1},  // 7
-	{1,  3, 0, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 3, 0,  0, 0, 3, 3, 0,  0, 3, 3, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 0, 0,  1},  // 8
-	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 3, 0,  0, 0, 1, 1, 0,  0, 1, 1, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 0, 0,  1},  // 9 
-	{1,  3, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 3, 0,  0, 0, 1, 0, 0,  0, 0, 1, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 0,  3, 0, 0, 0, 0,  1},  // 10
+	{1,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 1,  1, 0, 1, 1, 1,  1, 1, 1, 0, 1,  1, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 0, 0, 0,  1},  // 6
+	{1,  0, 1, 1, 0, 1,  1, 1, 0, 1, 1,  1, 0, 1, 0, 0,  0, 0, 0, 1, 1,  1, 1, 0, 0, 0,  0, 0, 1, 0, 1,  1, 1, 0, 1, 1,  1, 0, 1, 1, 0,  1},  // 7
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 1, 2,  1, 0, 1, 1, 1,  1, 0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 1, 1, 0, 1,  2, 1, 0, 0, 0,  0, 0, 0, 1, 0,  1},  // 8
+	{1,  0, 0, 0, 1, 1,  1, 1, 0, 1, 2,  1, 0, 0, 0, 0,  1, 0, 1, 1, 2,  2, 1, 1, 0, 1,  0, 0, 0, 0, 1,  2, 1, 0, 1, 1,  1, 1, 0, 0, 0,  1},  // 9 
+	{1,  0, 1, 0, 1, 2,  2, 1, 0, 1, 2,  1, 1, 1, 1, 0,  0, 0, 1, 2, 2,  2, 2, 1, 0, 0,  0, 1, 1, 1, 1,  2, 1, 0, 1, 2,  2, 1, 0, 1, 0,  1},  // 10
 
-	{1,  3, 0, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 1, 0, 0,  0, 0, 1, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 3,  1},  // 11
-	{1,  0, 0, 3, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 1, 1, 1,  1, 1, 1, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 3,  1},  // 12 
-	{1,  3, 0, 0, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 3,  1},  // 13
-	{1,  0, 0, 3, 0, 1,  0, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 3,  1},  // 14 
-	{1,  3, 1, 0, 0, 1,  1, 1, 1, 1, 1,  0, 0, 0, 1, 1,  1, 1, 0, 0, 0,  0, 0, 0, 1, 1,  1, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 1, 3,  1},  // 15
+	{1,  0, 1, 0, 1, 2,  2, 1, 0, 1, 2,  1, 1, 1, 1, 0,  0, 0, 1, 2, 2,  2, 2, 1, 0, 0,  0, 1, 1, 1, 1,  2, 1, 0, 1, 2,  2, 1, 0, 1, 0,  1},  // 11
+	{1,  0, 0, 0, 1, 1,  1, 1, 0, 1, 2,  1, 0, 0, 0, 0,  1, 0, 1, 1, 1,  1, 1, 1, 0, 1,  0, 0, 0, 0, 1,  2, 1, 0, 1, 1,  1, 1, 0, 0, 0,  1},  // 12 
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 1, 2,  1, 0, 1, 1, 1,  1, 0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 1, 1, 0, 1,  2, 1, 0, 0, 0,  0, 0, 0, 1, 0,  1},  // 13
+	{1,  0, 1, 1, 0, 1,  1, 1, 0, 1, 1,  1, 0, 1, 0, 0,  0, 0, 1, 1, 2,  2, 1, 1, 0, 0,  0, 0, 1, 0, 1,  1, 1, 0, 1, 1,  1, 0, 1, 1, 0,  1},  // 14 
+	{1,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 1,  1, 0, 1, 1, 2,  2, 1, 1, 0, 1,  1, 0, 0, 0, 0,  0, 0, 0, 1, 0,  0, 0, 0, 0, 0,  1},  // 15
 
-	{1,  3, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1,  0, 0, 1, 0, 0,  0, 0, 0, 1, 0,  1},  // 16
-	{1,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1,  0, 0, 1, 0, 0,  0, 0, 0, 1, 0,  1},  // 17
-	{1,  3, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 1, 1, 1, 1,  1, 1, 1, 0, 0,  0, 0, 0, 0, 1,  0, 0, 1, 0, 0,  0, 0, 0, 1, 0,  1},  // 18 
-	{1,  0, 1, 1, 1, 1,  1, 0, 0, 0, 0,  0, 1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 1,  0, 0, 1, 0, 1,  1, 1, 1, 1, 0,  1},  // 19
-	{1,  3, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},  // 20
+	{1,  0, 1, 0, 1, 1,  0, 1, 0, 1, 0,  1, 0, 1, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 1, 0, 1,  0, 1, 0, 1, 0,  1, 1, 0, 1, 0,  1},  // 16
+	{1,  0, 1, 0, 1, 1,  0, 1, 0, 1, 0,  0, 0, 1, 1, 0,  1, 1, 1, 0, 1,  1, 0, 1, 1, 1,  0, 1, 1, 0, 0,  0, 1, 0, 1, 0,  1, 1, 0, 1, 0,  1},  // 17
+	{1,  0, 1, 0, 0, 0,  0, 0, 0, 1, 0,  1, 0, 0, 1, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 1, 0, 0, 1,  0, 1, 0, 0, 0,  0, 0, 0, 1, 0,  1},  // 18 
+	{1,  0, 1, 1, 1, 1,  0, 1, 1, 1, 0,  1, 1, 0, 1, 0,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  0, 1, 0, 1, 1,  0, 1, 1, 1, 0,  1, 1, 1, 1, 0,  1},  // 19
+	{1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1, 2, 2, 2, 2,  2, 2, 2, 2, 1,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0, 0,  1},  // 20
 
-	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1}	  // 21
+	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 2, 2, 2, 2,  2, 2, 2, 2, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1}	  // 21
 };
 
+int num_screens = 1;
 int num_enemies = 1;
 int num_walls = 0;
 int num_collectibles = 0;
+
+vector<pair<int, int>> collectibleIDs;
 
 
 // Change the world pos to the grid indices
@@ -86,7 +98,7 @@ pair<int, int> enemyPos_Grid =  { 11, 20 }; // Enemy Start position
 pair<int, int> playerPos_Grid = { 14, 21 }; // Player Start position 
 
 const float PLAYER_SIZE = 0.09f;
-const float PLAYER_SPEED = 0.015f;
+const float PLAYER_SPEED = 0.0125f;
 
 float xPlayerPos = 0.0f;
 float yPlayerPos = 0.0f;
@@ -146,7 +158,7 @@ bool isValidMove(int row, int col, int grid[MAZE_HEIGHT][MAZE_WIDTH])
 {
 	return (row >= 0 && row < MAZE_HEIGHT &&
 		col >= 0 && col < MAZE_WIDTH &&
-		grid[row][col] == 0 || grid[row][col] == 3);
+		grid[row][col] != 1);
 	//  This is empty space OR  Collectible
 }
 
@@ -278,6 +290,7 @@ bool handleUserEvents(RenderManager* renderManager) {
 			if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_SQUARE) != 0) {
 				// button is now down
 				squareDown = true;
+				gameState = GameWin;
 			}
 			else
 				if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_SQUARE) == 0 && squareDown) {
@@ -376,8 +389,8 @@ bool handleUserEvents(RenderManager* renderManager) {
 
 void createMaze(Matrix4* matrices, Matrix4 origin)
 {
-	int maze = num_enemies;
-	int collective = maze + num_walls;
+	int maze = I_MAZE;
+	int collective = I_COLLECTIBLE;
 
 	for (int i = 0; i < MAZE_HEIGHT; i++)
 	{
@@ -387,13 +400,15 @@ void createMaze(Matrix4* matrices, Matrix4 origin)
 			{
 				matrices[maze++] = origin * gridToMatrix(i,j);
 			}
-			else if (mazeTemplate[i][j] == 2)
+			else if (mazeTemplate[i][j] == 0)
 			{
-				matrices[collective++] = origin * gridToMatrix(i, j);
+				matrices[collective++] = origin * gridToMatrix(i, j) * Matrix4::scale({ 0.5, 0.5, 1.0 });
+				collectibleIDs.push_back({ i, j });
 			}
 		}
 	}
 }
+
 
 int main(int argc, const char *argv[])
 {
@@ -416,12 +431,19 @@ int main(int argc, const char *argv[])
 				{
 					num_walls++;
 				}
-				else if (mazeTemplate[i][j] == 3)
+				else if (mazeTemplate[i][j] == 0)
 				{
 					num_collectibles++;
 				}
 			}
 		}
+
+		// Init indexes
+		I_SCREEN = 0;
+		I_PLAYER = num_screens;
+		I_ENEMY = num_screens + 1;
+		I_MAZE = num_screens + 1 + num_enemies;
+		I_COLLECTIBLE = num_screens + 1 + num_enemies + num_walls;
 
 		// Init geometry
 		renderManager->createBasicGeometry(GRID_SIZE);
@@ -429,6 +451,7 @@ int main(int argc, const char *argv[])
 		renderManager->createRect(1, ObjectType::Ghost);
 		renderManager->createRect(num_walls, ObjectType::Wall); 
 		renderManager->createRect(num_collectibles, ObjectType::Collectible);
+		renderManager->createRect(1, ObjectType::Screen);
 
 		xPlayerPos = START_X + (playerPos_Grid.second * GRID_SIZE);
 		yPlayerPos = START_Y - (playerPos_Grid.first * GRID_SIZE);
@@ -436,13 +459,13 @@ int main(int argc, const char *argv[])
 		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();
 
-		// matrices[0] is the player position
-		matrices[0] = origin * gridToMatrix(playerPos_Grid.first, playerPos_Grid.second) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 });
+		matrices[I_SCREEN] = origin * Matrix4::scale({ 10.0, 10.0, 1.0 });
+		matrices[I_PLAYER] = origin * gridToMatrix(playerPos_Grid.first, playerPos_Grid.second) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 });
 
 		// matrices[1] is the enemy position
-		matrices[1] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
+		matrices[I_ENEMY] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
 	
-		float enemySpeed = 0.15f; // Time in seconds to move one step
+		float enemySpeed = 0.3f; // Time in seconds to move one step
 		float elapsedTime = 0.0f;
 		auto lastTime = chrono::steady_clock::now();
 
@@ -452,130 +475,155 @@ int main(int argc, const char *argv[])
 		printf("## Initialization has gone all right ##\n");
 
 		bool done = false;
-
-		//vector<Object>& allObjects = renderManager->GetAllObjects();
-		//Object player = allObjects[0];
 		
 		
 		// loop until exit
 		while (!done) {
-			auto currentTime = chrono::steady_clock::now();
-			auto duration = currentTime - lastTime;
-			auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();  // in microseconds
-
-			// Convert deltaTime to float seconds
-			float deltaTimeInSeconds = static_cast<float>(deltaTime) / 1000000.0f;
-
-			// Update elapsed time
-			lastTime = currentTime;
-			elapsedTime += deltaTimeInSeconds;
-
-			// =========================================================
-			// Wall Collision Detection
-			// =========================================================
-
-			// Need to do this twice: once to correct user input, once to check actual movement
-			for (int i = 0; i < 2; i++)
+			
+			switch (gameState) 
 			{
-				// Check player position next frame
-				float playerNextX = xPlayerPos + PLAYER_SPEED * playerDirectionX;
-				float playerNextY = yPlayerPos + PLAYER_SPEED * playerDirectionY;
-				pair<int, int> gridOverlap1;
-				pair<int, int> gridOverlap2;
+				case Game:
+				{
+					auto currentTime = chrono::steady_clock::now();
+					auto duration = currentTime - lastTime;
+					auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();  // in microseconds
 
-				float offset = (GRID_SIZE - PLAYER_SIZE) / 2;
+					// Convert deltaTime to float seconds
+					float deltaTimeInSeconds = static_cast<float>(deltaTime) / 1000000.0f;
 
-				if (playerDirectionX == 1)
-				{
-					gridOverlap1 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - (PLAYER_SIZE + offset));
-					gridOverlap2 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - offset);
-				}
-				if (playerDirectionX == -1)
-				{
-					gridOverlap1 = worldToGrid(playerNextX + offset, playerNextY - offset);
-					gridOverlap2 = worldToGrid(playerNextX + offset, playerNextY - (PLAYER_SIZE + offset));
-				}
-				if (playerDirectionY == 1)
-				{
-					gridOverlap1 = worldToGrid(playerNextX + offset, playerNextY - offset);
-					gridOverlap2 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - offset);
-				}
-				if (playerDirectionY == -1)
-				{
-					gridOverlap1 = worldToGrid(playerNextX + offset, playerNextY - (PLAYER_SIZE + offset));
-					gridOverlap2 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - (PLAYER_SIZE + offset));
-				}
+					// Update elapsed time
+					lastTime = currentTime;
+					elapsedTime += deltaTimeInSeconds;
 
-				// Check if moving into a wall
-				if (mazeTemplate[gridOverlap1.first][gridOverlap1.second] == 1 ||
-					mazeTemplate[gridOverlap2.first][gridOverlap2.second] == 1)
-				{
-					// Differentiate between horizontal and vertical directions
-					if (playerDirectionY == 0) // moving horizontally
+					// =========================================================
+					// Wall Collision Detection
+					// =========================================================
+
+					// Need to do this twice: once to correct user input, once to check actual movement
+					for (int i = 0; i < 2; i++)
 					{
-						if (prevPlayerDirectionX == 0) // switching directions
-						{
-							playerDirectionX = prevPlayerDirectionX;
-							playerDirectionY = prevPlayerDirectionY;
-						}
-						else
-						{
-							// Snap player to grid
-							if (playerDirectionX == 1)
-							{
-								xPlayerPos = START_X + ((gridOverlap1.second - 1) * GRID_SIZE);
-							}
-							else if (playerDirectionX == -1)
-							{
-								xPlayerPos = START_X + ((gridOverlap1.second + 1) * GRID_SIZE);
-							}
+						// Check player position next frame
+						float playerNextX = xPlayerPos + PLAYER_SPEED * playerDirectionX;
+						float playerNextY = yPlayerPos + PLAYER_SPEED * playerDirectionY;
+						pair<int, int> gridOverlap1;
+						pair<int, int> gridOverlap2;
 
-							playerDirectionX = 0;
+						float offset = (GRID_SIZE - PLAYER_SIZE) / 2;
+
+						if (playerDirectionX == 1)
+						{
+							gridOverlap1 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - (PLAYER_SIZE + offset));
+							gridOverlap2 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - offset);
+						}
+						if (playerDirectionX == -1)
+						{
+							gridOverlap1 = worldToGrid(playerNextX + offset, playerNextY - offset);
+							gridOverlap2 = worldToGrid(playerNextX + offset, playerNextY - (PLAYER_SIZE + offset));
+						}
+						if (playerDirectionY == 1)
+						{
+							gridOverlap1 = worldToGrid(playerNextX + offset, playerNextY - offset);
+							gridOverlap2 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - offset);
+						}
+						if (playerDirectionY == -1)
+						{
+							gridOverlap1 = worldToGrid(playerNextX + offset, playerNextY - (PLAYER_SIZE + offset));
+							gridOverlap2 = worldToGrid(playerNextX + (PLAYER_SIZE + offset), playerNextY - (PLAYER_SIZE + offset));
+						}
+
+						// Check if moving into a wall
+						if (mazeTemplate[gridOverlap1.first][gridOverlap1.second] == 1 ||
+							mazeTemplate[gridOverlap2.first][gridOverlap2.second] == 1)
+						{
+							// Differentiate between horizontal and vertical directions
+							if (playerDirectionY == 0) // moving horizontally
+							{
+								if (prevPlayerDirectionX == 0) // switching directions
+								{
+									playerDirectionX = prevPlayerDirectionX;
+									playerDirectionY = prevPlayerDirectionY;
+								}
+								else
+								{
+									// Snap player to grid
+									if (playerDirectionX == 1)
+									{
+										xPlayerPos = START_X + ((gridOverlap1.second - 1) * GRID_SIZE);
+									}
+									else if (playerDirectionX == -1)
+									{
+										xPlayerPos = START_X + ((gridOverlap1.second + 1) * GRID_SIZE);
+									}
+
+									playerDirectionX = 0;
+								}
+							}
+							else if (playerDirectionX == 0) // moving vertically
+							{
+								if (prevPlayerDirectionY == 0) // switching directions
+								{
+									playerDirectionX = prevPlayerDirectionX;
+									playerDirectionY = prevPlayerDirectionY;
+								}
+								else
+								{
+									// Snap player to grid
+									if (playerDirectionY == 1)
+									{
+										yPlayerPos = START_Y - ((gridOverlap1.first + 1) * GRID_SIZE);
+									}
+									else if (playerDirectionY == -1)
+									{
+										yPlayerPos = START_Y - ((gridOverlap1.first - 1) * GRID_SIZE);
+									}
+
+									playerDirectionY = 0;
+								}
+							}
+						}
+
+						if (playerDirectionX == 0 && playerDirectionY == 0) break;
+					}
+
+					xPlayerPos += PLAYER_SPEED * playerDirectionX;
+					yPlayerPos += PLAYER_SPEED * playerDirectionY;
+
+					// Sample rotation code, we can do do this based on the move direc
+					matrices[I_PLAYER] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 }); // * Matrix4::rotation(1.5, { 0, 0, 1 });
+					playerPos_Grid = worldToGrid(xPlayerPos + PLAYER_SIZE / 2, yPlayerPos - PLAYER_SIZE / 2);
+
+					if (mazeTemplate[playerPos_Grid.first][playerPos_Grid.second] == 0)
+					{
+						mazeTemplate[playerPos_Grid.first][playerPos_Grid.second] = -1;
+						num_collectibles -= 1;
+						if (num_collectibles == 0) {
+							gameState = GameWin;
 						}
 					}
-					else if (playerDirectionX == 0) // moving vertically
-					{
-						if (prevPlayerDirectionY == 0) // switching directions
-						{
-							playerDirectionX = prevPlayerDirectionX;
-							playerDirectionY = prevPlayerDirectionY;
-						}
-						else
-						{
-							// Snap player to grid
-							if (playerDirectionY == 1)
-							{
-								yPlayerPos = START_Y - ((gridOverlap1.first + 1) * GRID_SIZE);
-							}
-							else if (playerDirectionY == -1)
-							{
-								yPlayerPos = START_Y - ((gridOverlap1.first - 1) * GRID_SIZE);
-							}
 
-							playerDirectionY = 0;
-						}
-					}
+					enemyPos_Grid = moveEnemy(mazeTemplate, enemyPos_Grid, playerPos_Grid, enemySpeed, elapsedTime);
+					matrices[I_ENEMY] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
+
+					prevPlayerDirectionX = playerDirectionX;
+					prevPlayerDirectionY = playerDirectionY;
+
+					renderManager->drawScene(mazeTemplate, collectibleIDs, gameState);
+
+					break;
 				}
+				case GameWin:
+				{
+					renderManager->drawScene(mazeTemplate, collectibleIDs, gameState);
 
-				if (playerDirectionX == 0 && playerDirectionY == 0) break;
+					break;
+				}
+				default:
+				{
+					break;
+				}
 			}
 
-			xPlayerPos += PLAYER_SPEED * playerDirectionX;
-			yPlayerPos += PLAYER_SPEED * playerDirectionY;
-
-			// Sample rotation code, we can do do this based on the move direc
-			matrices[0] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 }); // * Matrix4::rotation(1.5, { 0, 0, 1 });
-			playerPos_Grid = worldToGrid(xPlayerPos, yPlayerPos);
-
-			enemyPos_Grid = moveEnemy(mazeTemplate, enemyPos_Grid, playerPos_Grid, enemySpeed, elapsedTime);
-			matrices[1] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
-
-			//renderManager->updateBallPosition(PLAYER_SPEED * playerDirectionX, PLAYER_SPEED * playerDirectionY);
-
-			prevPlayerDirectionX = playerDirectionX;
-			prevPlayerDirectionY = playerDirectionY;
-
-			renderManager->drawScene();
+			
 			// Check to see if user has requested to quit the loop and update simple app stuff
 			done = handleUserEvents(renderManager);
 		}

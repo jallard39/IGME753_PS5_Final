@@ -79,17 +79,6 @@ typedef struct BasicVertex {
 
 } BasicVertex;
 
-struct Object
-{
-	BasicVertex* vertices;
-	uint32_t vertexCount = 0;
-	sce::Agc::Core::Buffer vertexBuffer;
-	uint16_t* indexBuffer = nullptr;
-	uint32_t indexCount = 0;
-	Matrix4 transform;
-	bool isActive = true;
-};
-
 // The Material struct will store the texture and sampler for each object
 struct Material
 {
@@ -103,6 +92,7 @@ enum ObjectType {
 	Player = 2,
 	Collectible =3,
 	Ghost = 4,
+	Screen = 5
 };
 
 // Base class for all games that need a rendering loop
@@ -118,7 +108,6 @@ private:
 	sce::Agc::Core::Buffer vertexBuffer;
 
 	sce::Agc::Core::Buffer matBuffer;
-	vector<Object> allObjects;
 
 	// Texture info
 	std::vector<Material> mats;
@@ -161,17 +150,15 @@ public:
 	RenderManager(int windowSizeX, int windowSizeY);
 	~RenderManager(void);
 	void init();
-	void drawScene(); // draws all drawable components
+	void drawScene(int mazeTemplate[][42], vector<pair<int,int>> collectibleIDs, int gameState); // draws all drawable components
 	void setWindowSize(int winX, int winY) { windowX = winX; windowY = winY; }
 	void setClearColor(uint32_t r, uint32_t g, uint32_t b, uint32_t a) { 
-		rtClearValue = sce::Agc::Core::Encoder::raw(r, g, b, a); }
-	Object createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices);	
+		rtClearValue = sce::Agc::Core::Encoder::raw(r, g, b, a); }	
 	void createBasicGeometry(float gridSize);
 	void createRect(uint32_t numRect, ObjectType objType);
 	void createCircle(uint32_t numRect);
 	Matrix4* createViewMatrix();
 	Matrix4 creatOriginViewMatrix();
-	vector<Object>& GetAllObjects();
 
 	void LoadTextures();
 }; 

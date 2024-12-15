@@ -166,37 +166,7 @@ RenderManager::RenderManager()
 // default destructor: no longer need to shut things
 // down since there's a suspend point in drawing now
 RenderManager::~RenderManager(void)
-{
-}
-
-Object RenderManager::createObject(BasicVertex* vertices, uint32_t numVerts, uint16_t* indices, uint32_t numIndices)
-{
-	Object obj;
-
-	// copy vertices into local memory
-	BasicVertex* vertBuf = (BasicVertex*)allocDmem({ numVerts * sizeof(BasicVertex), sce::Agc::Alignment::kBuffer });
-	memcpy(vertBuf, vertices, numVerts * sizeof(BasicVertex));
-
-	obj.vertices = vertBuf;
-	obj.vertexCount = numVerts;
-	// create vertex buffer from above vertices
-	sce::Agc::Core::BufferSpec bufSpec;
-	bufSpec.initAsRegularBuffer(vertBuf, sizeof(BasicVertex), numVerts);
-	SceError error = sce::Agc::Core::initialize(&obj.vertexBuffer, &bufSpec);
-	SCE_AGC_ASSERT(error == SCE_OK);
-	sce::Agc::Core::registerResource(&obj.vertexBuffer, "Vertices");
-
-	// copy indices into new mesh index buffer
-	obj.indexBuffer = (uint16_t*)allocDmem({ numIndices * sizeof(uint16_t), sce::Agc::Alignment::kBuffer });
-	memcpy(obj.indexBuffer, indices, numIndices * sizeof(uint16_t));
-	obj.indexCount = numIndices;
-
-	// TODO: Change the Translation with the Matrix?
-	obj.transform = Matrix4::translation({ 0, 0, 0 });
-
-	allObjects.push_back(obj);
-	return obj;
-}
+{}
 
 
 
@@ -339,10 +309,6 @@ Matrix4 RenderManager::creatOriginViewMatrix() {
 	return origin;
 }
 
-vector<Object>& RenderManager::GetAllObjects()
-{
-	return allObjects;
-}
 
 void RenderManager::LoadTextures()
 {
@@ -562,7 +528,7 @@ void RenderManager::init()
 }
 
 
-void RenderManager::drawScene() {
+void RenderManager::drawScene(int mazeTemplate[][42], vector<pair<int, int>> collectibleIDs, int gameState) {
 	
 	// First we identify the back buffer.
 	const uint32_t buffer = backBufferIndex;
@@ -694,6 +660,22 @@ void RenderManager::drawScene() {
 
 		// NOTE: the earlier the draw call is, the baker the texture is 
 
+		// End Screen Draw
+		if (gameState == 2)
+		{
+			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+				.setBuffers(0, 1, &vertexBuffer)
+				.setBuffers(1, 1, &matBuffer)
+				.setDrawIndex(drawIndex);
+
+			ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+				.setTextures(0, 1, &mats[1].texture)
+				.setSamplers(0, 1, &mats[1].sampler);
+
+			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+		}
+		drawIndex++;
+
 		// Player Draw
 		ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
 			.setBuffers(0, 1, &vertexBuffer)
@@ -743,16 +725,19 @@ void RenderManager::drawScene() {
 		// Collectible Draw
 		for (uint32_t i = 0; i < numCollectible; i++)
 		{
-			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
-				.setBuffers(0, 1, &vertexBuffer)
-				.setBuffers(1, 1, &matBuffer)
-				.setDrawIndex(i + numCircles + numPlayer + numGhost + numWall);
+			if (mazeTemplate[collectibleIDs[i].first][collectibleIDs[i].second] == 0)
+			{
+				ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+					.setBuffers(0, 1, &vertexBuffer)
+					.setBuffers(1, 1, &matBuffer)
+					.setDrawIndex(drawIndex);
 
-			ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
-				.setTextures(0, 1, &mats[2].texture)
-				.setSamplers(0, 1, &mats[2].sampler);
+				ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+					.setTextures(0, 1, &mats[2].texture)
+					.setSamplers(0, 1, &mats[2].sampler);
 
-			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+				ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+			}
 			drawIndex++;
 		}
 
