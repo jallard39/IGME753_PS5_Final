@@ -295,9 +295,8 @@ Matrix4* RenderManager::createViewMatrix() {
 
 }
 
-Matrix4 RenderManager::creatOriginViewMatrix() {
-
-
+Matrix4 RenderManager::creatOriginViewMatrix() 
+{
 	Matrix4 origin;// = (Matrix4*)allocDmem({ sizeof(Matrix4) * 1, alignof(Matrix4) });
 	auto aspect = (float)windowX / windowY;
 
@@ -314,10 +313,17 @@ void RenderManager::LoadTextures()
 {
 	// These are the paths for all the assets we want to load
 	const char* imagePaths[] = {
-		PATH_PREFIX "wall.gnf",   // wall - 1
-		PATH_PREFIX "pacman.gnf", // player - 2
-		PATH_PREFIX "star.gnf",   // collectible - 3
-		PATH_PREFIX "ghost.gnf",  // ghost - 4
+		PATH_PREFIX "wall.gnf",			 // wall - 0
+		PATH_PREFIX "pacman_1.gnf",		 // player - 1
+		PATH_PREFIX "pacman_2.gnf",
+		PATH_PREFIX "pacman_3.gnf",
+		PATH_PREFIX "star.gnf",			 // collectible - 4
+		PATH_PREFIX "ghost.gnf",		 // ghost - 5
+		PATH_PREFIX "ghost2.gnf",		 // ghost2 - 6
+		PATH_PREFIX "screen_start1.gnf", // start screen 1 - 7
+		PATH_PREFIX "screen_start2.gnf", // start screen 2 - 8
+		PATH_PREFIX "screen_win.gnf",	 // win screen - 9
+		PATH_PREFIX "screen_lose.gnf",	 // lose screen - 10
 	};
 	uint32_t kNumTextures = sizeof(imagePaths) / sizeof(imagePaths[0]);
 
@@ -527,8 +533,18 @@ void RenderManager::init()
 	LoadTextures();
 }
 
+// Start screen animation variables
+float timeBetweenFrames_startScreen = 0.8f;
+float timer_startScreen = 0.0f;
+int frameTexture_startScreen = 7;
 
-void RenderManager::drawScene(int mazeTemplate[][42], vector<pair<int, int>> collectibleIDs, int gameState) {
+// Player animation variables
+float timeBetweenFrames_player = 0.1f;
+float timer_player = 0.0f;
+int frameTexture_player = 1;
+int playerFrameIncrement = 1;
+
+void RenderManager::drawScene(int mazeTemplate[][42], vector<pair<int, int>> collectibleIDs, int gameState, float deltaTime) {
 	
 	// First we identify the back buffer.
 	const uint32_t buffer = backBufferIndex;
@@ -611,28 +627,9 @@ void RenderManager::drawScene(int mazeTemplate[][42], vector<pair<int, int>> col
 		ctx.setShaders(nullptr, gs, ps, sce::Agc::UcPrimitiveType::Type::kTriList);
 
 		uint32_t drawIndex = 0;
-		//for (uint32_t i = 0; i < numObjects; i++)
-		//{
-		//	if (allObjects[i].isActive)
-		//	{
-		//		// Now we have to get the inputs for the draw calls ready. One thing that is slightly special is that we compiled the
-		//		// vertex shader using the S_DRAW_ID semantic. The way this normally works is that a single User SGPR is reserved by
-		//		// the shader compiler and the HW will automatically set this User SGPR as part of issuing the multi-draw. However,
-		//		// in this case we are not using a multi-draw which means no free draw ID. Instead, we will use the Binder to set this 
-		//		// User SGPR by calling setDrawIndex(). Since this is the per-draw ID it needs to be updated for every draw call.
-		//		ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
-		//			.setBuffers(0, 1, &allObjects[i].vertexBuffer)
-		//			.setBuffers(1, 1, &matBuffer)
-		//			.setDrawIndex(drawIndex);
 
-		//		// this would need to change if objects with differing numbers of indices were drawn
-		//		ctx.drawIndex(allObjects[i].indexCount, allObjects[i].indexBuffer);
-
-		//		drawIndex++;
-		//	}
-		//}
-
-		for (uint32_t i = 0; i < numCircles; i++)
+		// Circle drawing code
+		/*for (uint32_t i = 0; i < numCircles; i++)
 		{
 			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
 				.setBuffers(0, 1, &vertexBuffer)
@@ -642,90 +639,99 @@ void RenderManager::drawScene(int mazeTemplate[][42], vector<pair<int, int>> col
 			ctx.drawIndex(indicesPerCircle, circleIndexBuffer);
 
 			drawIndex++;
-		}
-
-		//for (uint32_t i = 0; i < numRectangles; i++)
-		//{
-		//	ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
-		//		.setBuffers(0, 1, &vertexBuffer)
-		//		.setBuffers(1, 1, &matBuffer)
-		//		.setDrawIndex(i + numCircles);
-
-		//	ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
-		//		.setTextures(0, 1, &mats[0].texture)
-		//		.setSamplers(0, 1, &mats[0].sampler);
-
-		//	ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
-		//}
+		}*/
 
 		// NOTE: the earlier the draw call is, the baker the texture is 
 
+		// Start Screen Draw
+		if (gameState == 4)
+		{
+			timer_startScreen += deltaTime;
+			if (timer_startScreen >= timeBetweenFrames_startScreen)
+			{
+				frameTexture_startScreen == 7 ? frameTexture_startScreen = 8 : frameTexture_startScreen = 7;
+				timer_startScreen -= timeBetweenFrames_startScreen;
+			}
+
+			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+				.setBuffers(0, 1, &vertexBuffer)
+				.setBuffers(1, 1, &matBuffer)
+				.setDrawIndex(drawIndex);
+
+			ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+				.setTextures(0, 1, &mats[frameTexture_startScreen].texture)
+				.setSamplers(0, 1, &mats[frameTexture_startScreen].sampler);
+
+			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+		}
+		drawIndex++;
+
 		// End Screen Draw
-		if (gameState == 2)
+		if (gameState == 2 || gameState == 3)
 		{
+			int endScreenTexture;
+			gameState == 2 ? endScreenTexture = 9 : endScreenTexture = 10;
+
 			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
 				.setBuffers(0, 1, &vertexBuffer)
 				.setBuffers(1, 1, &matBuffer)
 				.setDrawIndex(drawIndex);
 
 			ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
-				.setTextures(0, 1, &mats[1].texture)
-				.setSamplers(0, 1, &mats[1].sampler);
+				.setTextures(0, 1, &mats[endScreenTexture].texture)
+				.setSamplers(0, 1, &mats[endScreenTexture].sampler);
 
 			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
 		}
 		drawIndex++;
 
-		// Player Draw
-		ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
-			.setBuffers(0, 1, &vertexBuffer)
-			.setBuffers(1, 1, &matBuffer)
-			.setDrawIndex(drawIndex);
-
-		ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
-			.setTextures(0, 1, &mats[1].texture)
-			.setSamplers(0, 1, &mats[1].sampler);
-
-		ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
-		drawIndex++;
-
-		// Ghost Draw
-		for (uint32_t i = 0; i < numGhost; i++)
+		if (gameState != 4)
 		{
-			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
-				.setBuffers(0, 1, &vertexBuffer)
-				.setBuffers(1, 1, &matBuffer)
-				.setDrawIndex(drawIndex); // +1 player
+			// Ghost Draw
+			for (uint32_t i = 0; i < numGhost; i++)
+			{
+				ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+					.setBuffers(0, 1, &vertexBuffer)
+					.setBuffers(1, 1, &matBuffer)
+					.setDrawIndex(drawIndex); // +1 player
 
-			ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
-				.setTextures(0, 1, &mats[3].texture)
-				.setSamplers(0, 1, &mats[3].sampler);
+				ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+					.setTextures(0, 1, &mats[5 + i].texture)
+					.setSamplers(0, 1, &mats[5 + i].sampler);
 
-			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+				ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+				drawIndex++;
+			}
+
+			if (gameState == 1)
+			{
+				// Player animation update
+				timer_player += deltaTime;
+				if (timer_player >= timeBetweenFrames_player)
+				{
+					frameTexture_player += playerFrameIncrement;
+					if (frameTexture_player == 3) playerFrameIncrement = -1;
+					if (frameTexture_player == 1) playerFrameIncrement = 1;
+
+					timer_player -= timeBetweenFrames_player;
+				}
+
+				// Player Draw
+				ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+					.setBuffers(0, 1, &vertexBuffer)
+					.setBuffers(1, 1, &matBuffer)
+					.setDrawIndex(drawIndex);
+
+				ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+					.setTextures(0, 1, &mats[frameTexture_player].texture)
+					.setSamplers(0, 1, &mats[frameTexture_player].sampler);
+
+				ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+			}
 			drawIndex++;
-		}
 
-		// Wall Draw
-		for (uint32_t i = 0; i < numWall; i++)
-		{
-			ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
-				.setBuffers(0, 1, &vertexBuffer)
-				.setBuffers(1, 1, &matBuffer)
-				.setDrawIndex(drawIndex);
-
-			ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
-				.setTextures(0, 1, &mats[0].texture)
-				.setSamplers(0, 1, &mats[0].sampler);
-
-			ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
-			drawIndex++;
-		}
-
-
-		// Collectible Draw
-		for (uint32_t i = 0; i < numCollectible; i++)
-		{
-			if (mazeTemplate[collectibleIDs[i].first][collectibleIDs[i].second] == 0)
+			// Wall Draw
+			for (uint32_t i = 0; i < numWall; i++)
 			{
 				ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
 					.setBuffers(0, 1, &vertexBuffer)
@@ -733,14 +739,33 @@ void RenderManager::drawScene(int mazeTemplate[][42], vector<pair<int, int>> col
 					.setDrawIndex(drawIndex);
 
 				ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
-					.setTextures(0, 1, &mats[2].texture)
-					.setSamplers(0, 1, &mats[2].sampler);
+					.setTextures(0, 1, &mats[0].texture)
+					.setSamplers(0, 1, &mats[0].sampler);
 
 				ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+				drawIndex++;
 			}
-			drawIndex++;
-		}
 
+
+			// Collectible Draw
+			for (uint32_t i = 0; i < numCollectible; i++)
+			{
+				if (mazeTemplate[collectibleIDs[i].first][collectibleIDs[i].second] == 0)
+				{
+					ctx.m_bdr.getStage(sce::Agc::ShaderType::kGs)
+						.setBuffers(0, 1, &vertexBuffer)
+						.setBuffers(1, 1, &matBuffer)
+						.setDrawIndex(drawIndex);
+
+					ctx.m_bdr.getStage(sce::Agc::ShaderType::kPs)
+						.setTextures(0, 1, &mats[4].texture)
+						.setSamplers(0, 1, &mats[4].sampler);
+
+					ctx.drawIndex(indicesPerRect, rectangleIndexBuffer);
+				}
+				drawIndex++;
+			}
+		}
 
 		// Submit a flip via the GPU.
 		// Note: on Prospero, RenderTargets write into the GL2 cache, but the scan-out

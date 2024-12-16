@@ -150,7 +150,7 @@ public:
 	RenderManager(int windowSizeX, int windowSizeY);
 	~RenderManager(void);
 	void init();
-	void drawScene(int mazeTemplate[][42], vector<pair<int,int>> collectibleIDs, int gameState); // draws all drawable components
+	void drawScene(int mazeTemplate[][42], vector<pair<int,int>> collectibleIDs, int gameState, float deltaTime); // draws all drawable components
 	void setWindowSize(int winX, int winY) { windowX = winX; windowY = winY; }
 	void setClearColor(uint32_t r, uint32_t g, uint32_t b, uint32_t a) { 
 		rtClearValue = sce::Agc::Core::Encoder::raw(r, g, b, a); }	

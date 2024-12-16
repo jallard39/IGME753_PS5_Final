@@ -12,17 +12,19 @@ const uint32_t SCREEN_HEIGHT = 2160;
 
 // indices 
 int I_SCREEN = 0;
-int I_PLAYER = 1;
-int I_ENEMY = 2;
+int I_ENEMY = 1;
+int I_PLAYER = 2;
 int I_MAZE = 3;
 int I_COLLECTIBLE = 4;
 
 enum GameState {
 	Game = 1,
-	GameWin = 2
+	GameWin = 2,
+	GameOver = 3,
+	Start = 4
 };
 
-GameState gameState = Game;
+GameState gameState = Start;
 
 #pragma region MazeSetUp
 
@@ -63,15 +65,41 @@ int mazeTemplate[MAZE_HEIGHT][MAZE_WIDTH] =
 
 	{1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 2, 2, 2, 2,  2, 2, 2, 2, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1, 1,  1}	  // 21
 };
+#pragma endregion
 
-int num_screens = 1;
-int num_enemies = 1;
+int num_screens = 2;
+int num_enemies = 2;
 int num_walls = 0;
 int num_collectibles = 0;
 
 vector<pair<int, int>> collectibleIDs;
 
+//                                row col
+pair<int, int> enemy1Pos_Grid = { 11, 19 }; // Enemy 1 Start position
+pair<int, int> enemy2Pos_Grid = { 11, 22 }; // Enemy 2 Start position
+pair<int, int> playerPos_Grid = { 0, 0 }; // Player Start position 
 
+const float PLAYER_SIZE = 0.09f;
+const float PLAYER_SPEED = 0.0125f;
+const float ENEMY_SPEED = 0.2f;
+float enemyTimer = 0.0f;
+
+float xPlayerPos = -1 * PLAYER_SIZE / 2;
+float yPlayerPos = -0.3f - PLAYER_SIZE / 2;
+
+int playerDirectionX = 0;
+int playerDirectionY = 0;
+int prevPlayerDirectionX = 0;
+int prevPlayerDirectionY = 0;
+Matrix4 playerRotation = Matrix4::rotation(0, { 0, 0, 1 });
+
+SceUserServiceUserId userId; // user information
+int32_t controllerHandle;
+
+#pragma region Helper Functions
+// ======================================
+// Grid Helper Functions
+// ======================================
 // Change the world pos to the grid indices
 pair<int, int> worldToGrid(float realX, float realY) {
 	// Calculate grid indices
@@ -90,28 +118,12 @@ Matrix4 gridToMatrix(int row, int col)
 
 	return Matrix4::translation({ realX, realY, 0.0f });
 }
-
 #pragma endregion
 
-//                                row col
-pair<int, int> enemyPos_Grid =  { 11, 20 }; // Enemy Start position
-pair<int, int> playerPos_Grid = { 14, 21 }; // Player Start position 
-
-const float PLAYER_SIZE = 0.09f;
-const float PLAYER_SPEED = 0.0125f;
-
-float xPlayerPos = 0.0f;
-float yPlayerPos = 0.0f;
-
-int playerDirectionX = 1;
-int playerDirectionY = 0;
-int prevPlayerDirectionX = 0;
-int prevPlayerDirectionY = 0;
-
-SceUserServiceUserId userId; // user information
-int32_t controllerHandle; 
-
-
+#pragma region Controller Initialization
+// ======================================
+// Controller Initialization
+// ======================================
 // initializes and controller and also default user info
 int initialize() {
 	int ret = SCE_OK;
@@ -148,8 +160,116 @@ int finalize() {
 
 	return ret;
 }
+#pragma endregion
 
-#pragma region AI Section
+#pragma region Game Initialization
+// ======================================
+// Game Initialization
+// ======================================
+void createMaze(Matrix4* matrices, Matrix4 origin)
+{
+	int maze = I_MAZE;
+	int collective = I_COLLECTIBLE;
+
+	for (int i = 0; i < MAZE_HEIGHT; i++)
+	{
+		for (int j = 0; j < MAZE_WIDTH; j++)
+		{
+			if (mazeTemplate[i][j] == 1)
+			{
+				matrices[maze++] = origin * gridToMatrix(i, j);
+			}
+			else if (mazeTemplate[i][j] == 0)
+			{
+				matrices[collective++] = origin * gridToMatrix(i, j) * Matrix4::scale({ 0.5, 0.5, 1.0 });
+				collectibleIDs.push_back({ i, j });
+			}
+		}
+	}
+}
+
+// First time initialization for game loop
+Matrix4* initGame(RenderManager* renderManager, Matrix4 origin)
+{
+	// Initialize the num_walls
+	for (int i = 0; i < MAZE_HEIGHT; i++)
+	{
+		for (int j = 0; j < MAZE_WIDTH; j++)
+		{
+			if (mazeTemplate[i][j] == 1)
+			{
+				num_walls++;
+			}
+			else if (mazeTemplate[i][j] == 0)
+			{
+				num_collectibles++;
+			}
+		}
+	}
+
+	// Init indexes
+	I_SCREEN = 0;
+	I_ENEMY = num_screens;
+	I_PLAYER = num_screens + num_enemies;
+	I_MAZE = num_screens + num_enemies + 1;
+	I_COLLECTIBLE = num_screens + num_enemies + 1 + num_walls;
+
+	// Init geometry
+	renderManager->createBasicGeometry(GRID_SIZE);
+	renderManager->createRect(num_screens, ObjectType::Screen);
+	renderManager->createRect(num_enemies, ObjectType::Ghost);
+	renderManager->createRect(1, ObjectType::Player);
+	renderManager->createRect(num_walls, ObjectType::Wall);
+	renderManager->createRect(num_collectibles, ObjectType::Collectible);
+
+	// Init matrices
+	Matrix4* matrices = renderManager->createViewMatrix();
+
+	matrices[I_SCREEN] = origin * Matrix4::scale({ 40.0, 22.5, 1.0 }); // Start screen
+	matrices[I_SCREEN + 1] = origin * Matrix4::scale({ 24.0, 13.5, 1.0 }); // End screen
+
+	matrices[I_ENEMY] = origin * gridToMatrix(enemy1Pos_Grid.first, enemy1Pos_Grid.second);
+	matrices[I_ENEMY + 1] = origin * gridToMatrix(enemy2Pos_Grid.first, enemy2Pos_Grid.second);
+
+	matrices[I_PLAYER] = origin * gridToMatrix(playerPos_Grid.first, playerPos_Grid.second) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 });
+
+	// Init maze
+	createMaze(matrices, origin);
+
+	return matrices;
+}
+
+// Reset the game after game win or game over
+void resetGame()
+{
+	enemyTimer = ENEMY_SPEED;
+	xPlayerPos = -1 * PLAYER_SIZE / 2;
+	yPlayerPos = -0.3f - PLAYER_SIZE / 2;
+	enemy1Pos_Grid = { 11, 19 };
+	enemy2Pos_Grid = { 11, 22 };
+	playerDirectionX = 0;
+	playerDirectionY = 0;
+	playerRotation = Matrix4::rotation(M_PI, { 0, 0, 1 });
+
+	for (int i = 0; i < MAZE_HEIGHT; i++)
+	{
+		for (int j = 0; j < MAZE_WIDTH; j++)
+		{
+			if (mazeTemplate[i][j] == -1)
+			{
+				mazeTemplate[i][j] = 0;
+				num_collectibles++;
+			}
+		}
+	}
+}
+#pragma endregion
+
+#pragma region Enemy AI
+// ======================================
+// Enemy AI
+// ======================================
+// 
 // Directions for movement: up, down, left, right
 const int DIRECTION_Y[] = { -1, 1, 0, 0 };
 const int DIRECTION_X[] = { 0, 0, -1, 1 };
@@ -158,12 +278,14 @@ bool isValidMove(int row, int col, int grid[MAZE_HEIGHT][MAZE_WIDTH])
 {
 	return (row >= 0 && row < MAZE_HEIGHT &&
 		col >= 0 && col < MAZE_WIDTH &&
+		!(row == enemy1Pos_Grid.first && col == enemy1Pos_Grid.second) &&
+		!(row == enemy2Pos_Grid.first && col == enemy2Pos_Grid.second) &&
 		grid[row][col] != 1);
 	//  This is empty space OR  Collectible
 }
 
 // BFS function to find the shortest path
-vector<pair<int, int>> findPath(int grid[MAZE_HEIGHT][MAZE_WIDTH], pair<int, int> start, pair<int, int> target) {
+vector<pair<int, int>> findPath(int grid[MAZE_HEIGHT][MAZE_WIDTH], pair<int, int> start, pair<int, int> target, bool reversePattern) {
 	queue<pair<int, int>> q;
 	bool visited[MAZE_HEIGHT][MAZE_WIDTH] = {};
 	pair<int, int> parent[MAZE_HEIGHT][MAZE_WIDTH];
@@ -184,10 +306,19 @@ vector<pair<int, int>> findPath(int grid[MAZE_HEIGHT][MAZE_WIDTH], pair<int, int
 		if (current == target) break;
 
 		for (int i = 0; i < 4; i++) {
-			int row = current.first + DIRECTION_Y[i];
-			int col = current.second + DIRECTION_X[i];
+			int row, col;
+			if (reversePattern)
+			{
+				row = current.first + DIRECTION_Y[3 - i];
+				col = current.second + DIRECTION_X[3 - i];
+			}
+			else 
+			{
+				row = current.first + DIRECTION_Y[i];
+				col = current.second + DIRECTION_X[i];
+			}
 
-			if (isValidMove(row, col, grid) && !visited[row][col]) {
+			if (!visited[row][col] && isValidMove(row, col, grid)) {
 				visited[row][col] = true;
 				q.push({ row, col });
 				parent[row][col] = current;
@@ -212,22 +343,23 @@ pair<int, int> moveEnemy(
 	int grid[MAZE_HEIGHT][MAZE_WIDTH],
 	pair<int, int>& enemyPos,
 	pair<int, int> playerPos,
-	float timeNeededToMoveOneGrid,
-	float& elapsedTime
+	bool reversePattern = false
 ) {
-	vector<pair<int, int>> path = findPath(grid, enemyPos, playerPos);
+	vector<pair<int, int>> path = findPath(grid, enemyPos, playerPos, reversePattern);
 
-	// If enough time has passed, move the enemy
-	if (path.size() > 1 && elapsedTime >= timeNeededToMoveOneGrid) {
+	// Move the enemy
+	if (path.size() > 1) {
 		enemyPos = path[1]; // Move to the next position
-		elapsedTime -= timeNeededToMoveOneGrid; // Reset timer for the next move
 	}
 
 	return enemyPos;
 }
 #pragma endregion
 
-
+#pragma region User Input
+// ======================================
+// Handle User Input
+// ======================================
 // accesses the controller and gets info
 bool handleUserEvents(RenderManager* renderManager) {
 
@@ -265,7 +397,6 @@ bool handleUserEvents(RenderManager* renderManager) {
 				}
 
 		//   Circle
-		//   Triangle press test
 		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_CIRCLE) == 0 && !circleDown) {
 			// most common case - not pushing anything or waiting to release the button
 		}
@@ -282,24 +413,25 @@ bool handleUserEvents(RenderManager* renderManager) {
 				}
 
 		//   Square
-		//   Triangle press test
 		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_SQUARE) == 0 && !squareDown) {
 			// most common case - not pushing anything or waiting to release the button
 		}
-		else
-			if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_SQUARE) != 0) {
-				// button is now down
-				squareDown = true;
-				gameState = GameWin;
+		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_SQUARE) != 0) {
+			// button is now down
+			squareDown = true;
+		}
+		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_SQUARE) == 0 && squareDown) {
+			printf("## Square!!!! ##\n");
+			if (gameState == GameOver || gameState == GameWin)
+			{
+				resetGame();
+				gameState = Start;
 			}
-			else
-				if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_SQUARE) == 0 && squareDown) {
-					printf("## Square!!!! ##\n");
-					squareDown = false;
-				}
+			if (gameState == Game) gameState = GameWin;
+			squareDown = false;
+		}
 
 		//   Cross
-		//   Triangle press test
 		if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_CROSS) == 0 && !crossDown) {
 			// most common case - not pushing anything or waiting to release the button
 		}
@@ -309,6 +441,12 @@ bool handleUserEvents(RenderManager* renderManager) {
 		}
 		else if ((data.buttons & ScePadButtonDataOffset::SCE_PAD_BUTTON_CROSS) == 0 && crossDown) {
 			printf("## Cross!!!! ##\n");
+			if (gameState == Start) gameState = Game;
+			if (gameState == GameOver || gameState == GameWin)
+			{
+				resetGame(); 
+				gameState = Game;
+			}
 			crossDown = false;
 		}
 
@@ -385,31 +523,12 @@ bool handleUserEvents(RenderManager* renderManager) {
 	
 	return false;
 }
+#pragma endregion
 
-
-void createMaze(Matrix4* matrices, Matrix4 origin)
-{
-	int maze = I_MAZE;
-	int collective = I_COLLECTIBLE;
-
-	for (int i = 0; i < MAZE_HEIGHT; i++)
-	{
-		for (int j = 0; j < MAZE_WIDTH; j++)
-		{
-			if (mazeTemplate[i][j] == 1)
-			{
-				matrices[maze++] = origin * gridToMatrix(i,j);
-			}
-			else if (mazeTemplate[i][j] == 0)
-			{
-				matrices[collective++] = origin * gridToMatrix(i, j) * Matrix4::scale({ 0.5, 0.5, 1.0 });
-				collectibleIDs.push_back({ i, j });
-			}
-		}
-	}
-}
-
-
+#pragma region Main Loop
+// ======================================
+// Main Function & Game Loop
+// ======================================
 int main(int argc, const char *argv[])
 {
 	// set up controller class
@@ -422,79 +541,44 @@ int main(int argc, const char *argv[])
 		renderManager->setClearColor(0, 0, 0, 255);
 		renderManager->init();
 
-		// Initialize the num_walls
-		for (int i = 0; i < MAZE_HEIGHT; i++)
-		{
-			for (int j = 0; j < MAZE_WIDTH; j++)
-			{
-				if (mazeTemplate[i][j] == 1)
-				{
-					num_walls++;
-				}
-				else if (mazeTemplate[i][j] == 0)
-				{
-					num_collectibles++;
-				}
-			}
-		}
-
-		// Init indexes
-		I_SCREEN = 0;
-		I_PLAYER = num_screens;
-		I_ENEMY = num_screens + 1;
-		I_MAZE = num_screens + 1 + num_enemies;
-		I_COLLECTIBLE = num_screens + 1 + num_enemies + num_walls;
-
-		// Init geometry
-		renderManager->createBasicGeometry(GRID_SIZE);
-		renderManager->createRect(1, ObjectType::Player);
-		renderManager->createRect(1, ObjectType::Ghost);
-		renderManager->createRect(num_walls, ObjectType::Wall); 
-		renderManager->createRect(num_collectibles, ObjectType::Collectible);
-		renderManager->createRect(1, ObjectType::Screen);
-
-		xPlayerPos = START_X + (playerPos_Grid.second * GRID_SIZE);
-		yPlayerPos = START_Y - (playerPos_Grid.first * GRID_SIZE);
-
-		Matrix4* matrices = renderManager->createViewMatrix();
 		Matrix4 origin = renderManager->creatOriginViewMatrix();
 
-		matrices[I_SCREEN] = origin * Matrix4::scale({ 10.0, 10.0, 1.0 });
-		matrices[I_PLAYER] = origin * gridToMatrix(playerPos_Grid.first, playerPos_Grid.second) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 });
-
-		// matrices[1] is the enemy position
-		matrices[I_ENEMY] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
+		Matrix4* matrices = initGame(renderManager, origin);
 	
-		float enemySpeed = 0.3f; // Time in seconds to move one step
-		float elapsedTime = 0.0f;
 		auto lastTime = chrono::steady_clock::now();
-
-		// Create maze: set the wall postion
-		createMaze(matrices, origin);
 
 		printf("## Initialization has gone all right ##\n");
 
 		bool done = false;
 		
-		
-		// loop until exit
+		// ======================================
+		// MAIN GAME LOOP - loop until exit
+		// ======================================
 		while (!done) {
 			
+			// Calculate deltaTime
+			auto currentTime = chrono::steady_clock::now();
+			auto duration = currentTime - lastTime;
+			auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();  // in microseconds
+
+			// Convert deltaTime to float seconds
+			float deltaTimeInSeconds = static_cast<float>(deltaTime) / 1000000.0f;
+
+			lastTime = currentTime;
+
 			switch (gameState) 
 			{
+				case Start:
+				{
+				
+					break;
+				}
 				case Game:
 				{
-					auto currentTime = chrono::steady_clock::now();
-					auto duration = currentTime - lastTime;
-					auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();  // in microseconds
+					// Update timers
+					enemyTimer += deltaTimeInSeconds;
 
-					// Convert deltaTime to float seconds
-					float deltaTimeInSeconds = static_cast<float>(deltaTime) / 1000000.0f;
-
-					// Update elapsed time
-					lastTime = currentTime;
-					elapsedTime += deltaTimeInSeconds;
-
+					#pragma region Wall Collision
 					// =========================================================
 					// Wall Collision Detection
 					// =========================================================
@@ -584,14 +668,40 @@ int main(int argc, const char *argv[])
 
 						if (playerDirectionX == 0 && playerDirectionY == 0) break;
 					}
+					#pragma endregion
+
+					#pragma region Update Player & Enemy
+					// =========================================================
+					// Update Player & Enemy
+					// =========================================================
 
 					xPlayerPos += PLAYER_SPEED * playerDirectionX;
 					yPlayerPos += PLAYER_SPEED * playerDirectionY;
 
-					// Sample rotation code, we can do do this based on the move direc
-					matrices[I_PLAYER] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 }); // * Matrix4::rotation(1.5, { 0, 0, 1 });
-					playerPos_Grid = worldToGrid(xPlayerPos + PLAYER_SIZE / 2, yPlayerPos - PLAYER_SIZE / 2);
+					if (playerDirectionX == 1) playerRotation = Matrix4::rotation(0, { 0, 0, 1 });
+					else if (playerDirectionX == -1) playerRotation = Matrix4::rotation(M_PI, { 0, 0, 1 });
+					else if (playerDirectionY == 1) playerRotation = Matrix4::rotation(M_PI_2, { 0, 0, 1 });
+					else if (playerDirectionY == -1) playerRotation = Matrix4::rotation(3 * M_PI_2, { 0, 0, 1 });
 
+					matrices[I_PLAYER] = origin * Matrix4::translation({ xPlayerPos, yPlayerPos, 0 }) * Matrix4::scale({ PLAYER_SIZE / GRID_SIZE, PLAYER_SIZE / GRID_SIZE, 1.0 }) * playerRotation;
+					playerPos_Grid = worldToGrid(xPlayerPos + PLAYER_SIZE / 2, yPlayerPos - PLAYER_SIZE / 2);
+					
+					if (enemyTimer >= ENEMY_SPEED) 
+					{ 
+						enemy1Pos_Grid = moveEnemy(mazeTemplate, enemy1Pos_Grid, playerPos_Grid, false);
+						enemy2Pos_Grid = moveEnemy(mazeTemplate, enemy2Pos_Grid, playerPos_Grid, true);
+						matrices[I_ENEMY] = origin * gridToMatrix(enemy1Pos_Grid.first, enemy1Pos_Grid.second);
+						matrices[I_ENEMY + 1] = origin * gridToMatrix(enemy2Pos_Grid.first, enemy2Pos_Grid.second);
+
+						enemyTimer -= ENEMY_SPEED; 
+					}
+					#pragma endregion
+
+					#pragma region Collectibles & Game State
+					// =========================================================
+					// Collectible Collision Detection, Win Condition, Game Over
+					// =========================================================
+					
 					if (mazeTemplate[playerPos_Grid.first][playerPos_Grid.second] == 0)
 					{
 						mazeTemplate[playerPos_Grid.first][playerPos_Grid.second] = -1;
@@ -601,20 +711,19 @@ int main(int argc, const char *argv[])
 						}
 					}
 
-					enemyPos_Grid = moveEnemy(mazeTemplate, enemyPos_Grid, playerPos_Grid, enemySpeed, elapsedTime);
-					matrices[I_ENEMY] = origin * gridToMatrix(enemyPos_Grid.first, enemyPos_Grid.second);
+					if (enemy1Pos_Grid == playerPos_Grid || enemy2Pos_Grid == playerPos_Grid)
+					{
+						gameState = GameOver;
+					}
+					#pragma endregion
 
 					prevPlayerDirectionX = playerDirectionX;
 					prevPlayerDirectionY = playerDirectionY;
-
-					renderManager->drawScene(mazeTemplate, collectibleIDs, gameState);
 
 					break;
 				}
 				case GameWin:
 				{
-					renderManager->drawScene(mazeTemplate, collectibleIDs, gameState);
-
 					break;
 				}
 				default:
@@ -623,6 +732,7 @@ int main(int argc, const char *argv[])
 				}
 			}
 
+			renderManager->drawScene(mazeTemplate, collectibleIDs, gameState, deltaTimeInSeconds);
 			
 			// Check to see if user has requested to quit the loop and update simple app stuff
 			done = handleUserEvents(renderManager);
@@ -637,6 +747,6 @@ int main(int argc, const char *argv[])
 	}
 
 }
-
+#pragma endregion
 
 

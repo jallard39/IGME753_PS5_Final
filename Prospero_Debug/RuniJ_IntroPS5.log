@@ -1,10 +1,5 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Platforms\Prospero\Prospero.CppBuild.targets(100,5): warning MSB8028: The intermediate directory (Prospero_Debug\) contains files shared from another project (BreakOut.vcxproj, RuniJ_IntroPS5.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  RenderManager.cpp
-  In file included from D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final\RenderManager.cpp:1:
-D:\Profiles\GCCISAdmin\Documents\GitHub\IGME753_PS5_Final/RenderManager.h(116,11): warning : private field 'numRectangles' is not used [-Wunused-private-field]
-    116 |         uint32_t numRectangles = 0;
-        |                  ^
-  1 warning generated.
+  GameMain.cpp
 prospero-lld : warning : C:\Program Files (x86)\SCE\Prospero SDKs\9.000\host_tools\lib\libSceAgcTextureTool_debug.lib: archive member 'libSceAgcTextureTool_Debug.dll' is neither ET_REL nor LLVM bitcode
 prospero-lld : warning : C:\Program Files (x86)\SCE\Prospero SDKs\9.000\host_tools\lib\libSceAgcTextureTool_debug.lib: archive member 'libSceAgcTextureTool_Debug.dll' is neither ET_REL nor LLVM bitcode
 prospero-lld : warning : C:\Program Files (x86)\SCE\Prospero SDKs\9.000\host_tools\lib\libSceAgcTextureTool_debug.lib: archive member 'libSceAgcTextureTool_Debug.dll' is neither ET_REL nor LLVM bitcode
